@@ -82,6 +82,7 @@ def statistics(B_t, origin_t_spent, origin_t_win_imps,
 def state_(budget, auc_num, auc_t_datas, auc_t_data_pctrs, lamda, B_t, time_t, remain_auc_num):
     cpc = 30000
     bid_arrays = bid_func(auc_t_data_pctrs, lamda)  # 出价
+    bid_arrays = np.where(bid_arrays > 300, 300, bid_arrays)
     win_auc_datas = auc_t_datas[auc_t_datas.iloc[:, 2] <= bid_arrays].values  # 赢标的数据
     t_spent = np.sum(win_auc_datas[:, 2])  # 当前t时段花费
     t_auctions = len(auc_t_datas)  # 当前t时段参与拍卖次数

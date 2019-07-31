@@ -20,15 +20,19 @@ class Net(nn.Module):
         self.fc1.weight.data.normal_(0, 0.1)  # 全连接隐层 1 的参数初始化
         self.fc2 = nn.Linear(neuron_numbers_1, neuron_numbers_2)
         self.fc2.weight.data.normal_(0, 0.1)  # 全连接隐层 2 的参数初始化
-        self.out = nn.Linear(neuron_numbers_1, action_numbers)
-        self.out.weight.data.normal_(0, 0.1)  # 全连接隐层 2 的参数初始化
+        self.fc3 = nn.Linear(neuron_numbers_2, neuron_numbers_2)
+        self.fc3.weight.data.normal_(0, 0.1)  # 全连接隐层 3 的参数初始化
+        self.out = nn.Linear(neuron_numbers_2, action_numbers)
+        self.out.weight.data.normal_(0, 0.1)  # 输出层
 
     def forward(self, input):
         x_1 = self.fc1(input)
         x_1 = F.relu(x_1)
         x_2 = self.fc2(x_1)
         x_2 = F.relu(x_2)
-        actions_value = self.out(x_2)
+        x_3 = self.fc3(x_2)
+        x_3 = F.relu(x_3)
+        actions_value = self.out(x_3)
         return actions_value
 
 def store_para(Net):
