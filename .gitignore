@@ -1,0 +1,15 @@
+##ignor these files##
+/data/
+.idea
+/__pycache__/
+/src/DRLB/Model/
+/src/DRLB/__pycache__/
+/src/DRLB/result/
+/src/DRLB/data/
+/src/No_threshold/Model/
+/src/No_threshold/__pycache__/
+/src/No_threshold/result/
+/src/No_threshold_no_reward/Model/
+/src/No_threshold_no_reward/__pycache__/
+/src/No_threshold_no_reward/result/
+
