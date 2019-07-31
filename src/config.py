@@ -5,7 +5,7 @@ import pandas as pd
 import numpy as np
 
 config = {
-    'e_greedy': 1,
+    'e_greedy': 0.9,
     'learning_rate': 0.1,
     'pg_learning_rate': 1e-4,
     'reward_decay': 1,
