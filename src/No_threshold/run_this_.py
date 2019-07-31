@@ -12,7 +12,7 @@ def run_env(budget, auc_num, budget_para):
     env.build_env(budget, auc_num)  # 参数为训练集的(预算， 预期展示次数)
     # 训练
     print('data loading')
-    train_data = pd.read_csv("../data/train_data.csv", header=None).drop([0])
+    train_data = pd.read_csv("../../data/train_data.csv", header=None).drop([0])
     train_data.iloc[:, config['data_clk_index']:config['data_marketprice_index'] + 1] \
         = train_data.iloc[:, config['data_clk_index']:config['data_marketprice_index'] + 1].astype(
         int)
@@ -240,7 +240,7 @@ def test_env(budget, auc_num, budget_para):
     env.build_env(budget, auc_num)  # 参数为测试集的(预算， 总展示次数)
     state = env.reset(budget, auc_num)  # 参数为测试集的(预算， 总展示次数)
 
-    test_data = pd.read_csv("../data/test_data.csv", header=None).drop([0])
+    test_data = pd.read_csv("../../data/test_data.csv", header=None).drop([0])
     test_data.iloc[:, config['data_clk_index']:config['data_marketprice_index'] + 1] \
         = test_data.iloc[:, config['data_clk_index']:config['data_marketprice_index'] + 1].astype(
         int)

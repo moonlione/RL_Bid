@@ -11,7 +11,7 @@ def test_env(budget, auc_num, budget_para, env, RL):
     env.build_env(budget, auc_num)  # 参数为测试集的(预算， 总展示次数)
     state = env.reset(budget, auc_num)  # 参数为测试集的(预算， 总展示次数)
 
-    test_data = pd.read_csv("../data/test_data.csv", header=None).drop([0])
+    test_data = pd.read_csv("../../data/test_data.csv", header=None).drop([0])
     test_data.iloc[:, config['data_clk_index']:config['data_marketprice_index'] + 1] \
         = test_data.iloc[:, config['data_clk_index']:config['data_marketprice_index'] + 1].astype(
         int)
