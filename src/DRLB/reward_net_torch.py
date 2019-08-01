@@ -18,6 +18,8 @@ class Net(nn.Module):
         self.fc1.weight.data.normal_(0, 0.1)  # 全连接隐层 1 的参数初始化
         self.fc2 = nn.Linear(neuron_numbers_1, neuron_numbers_2)
         self.fc2.weight.data.normal_(0, 0.1)  # 全连接隐层 2 的参数初始化
+        self.fc3 = nn.Linear(neuron_numbers_1, neuron_numbers_2)
+        self.fc3.weight.data.normal_(0, 0.1)  # 全连接隐层 2 的参数初始化
         self.out = nn.Linear(neuron_numbers_1, reward_numbers)
         self.out.weight.data.normal_(0, 0.1)
 
@@ -26,7 +28,9 @@ class Net(nn.Module):
         x_1 = F.relu(x_1)
         x_2 = self.fc2(x_1)
         x_2 = F.relu(x_2)
-        actions_value = self.out(x_2)
+        x_3 = self.fc2(x_2)
+        x_3 = F.relu(x_3)
+        actions_value = self.out(x_3)
         return actions_value
 
 class RewardNet:
@@ -35,7 +39,7 @@ class RewardNet:
         action_space,
         reward_numbers,
         feature_numbers,
-        learning_rate = 0.01,
+        learning_rate =  0.001,
         memory_size = 500,
         batch_size = 32,
     ):
@@ -61,7 +65,7 @@ class RewardNet:
         self.model_reward, self.real_reward = Net(self.feature_numbers, self.reward_numbers).cuda(), Net(self.feature_numbers, self.reward_numbers).cuda()
 
         # 优化器
-        self.optimizer = torch.optim.RMSprop(self.model_reward.parameters(), lr=self.lr, alpha=0.9)
+        self.optimizer = torch.optim.SGD(self.model_reward.parameters(), lr=self.lr, momentum=0.95)
         # 损失函数为，均方损失函数
         self.loss_func = nn.MSELoss().cuda()
 

@@ -4,7 +4,6 @@
 config = {
     'e_greedy': 1,
     'learning_rate': 0.001,
-    'pg_learning_rate': 1e-3,
     'reward_decay': 1,
     'feature_num': 7,
     'state_feature_num': 7,

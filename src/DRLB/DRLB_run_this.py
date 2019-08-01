@@ -392,7 +392,7 @@ if __name__ == '__main__':
              )
 
     RewardNet = RewardNet([-0.08, -0.03, -0.01, 0, 0.01, 0.03, 0.08],  # 按照数据集中的“块”计量
-                          1, env.feature_numbers, memory_size=config['memory_size'], batch_size=config['batch_size'], )
+                          1, env.feature_numbers, learning_rate=config['learning_rate'], memory_size=config['memory_size'], batch_size=config['batch_size'], )
 
     budget_para = config['budget_para']
     for i in range(len(budget_para)):

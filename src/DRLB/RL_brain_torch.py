@@ -85,7 +85,7 @@ class DRLB:
             self.feature_numbers, self.action_numbers).cuda()
 
         # 优化器
-        self.optimizer = torch.optim.RMSprop(self.eval_net.parameters(), lr=self.lr, alpha=0.9)
+        self.optimizer = torch.optim.SGD(self.eval_net.parameters(), lr=self.lr, momentum=0.95)
         # 损失函数为，均方损失函数
         self.loss_func = nn.MSELoss().cuda()
 
@@ -111,7 +111,7 @@ class DRLB:
         # 统一 state 的 shape, torch.unsqueeze()这个函数主要是对数据维度进行扩充
         state = torch.unsqueeze(torch.FloatTensor(state), 0).cuda()
 
-        if np.random.uniform() < self.epsilon:
+        if np.random.uniform() > max(self.epsilon, 0.5):
             # 让 eval_net 神经网络生成所有 action 的值, 并选择值最大的 action
             actions_value = self.eval_net.forward(state)
             # torch.max(input, dim, keepdim=False, out=None) -> (Tensor, LongTensor),按维度dim 返回最大值
@@ -185,7 +185,7 @@ class DRLB:
 
     def control_epsilon(self, t):
         # 逐渐增加epsilon，增加行为的利用性
-        r_epsilon = 0.01  # 降低速率
+        r_epsilon = 0.001  # 降低速率
         self.epsilon = max(0.95 - r_epsilon * t, 0.05)
 
     # 只存储获得最优收益（点击）那一轮的参数

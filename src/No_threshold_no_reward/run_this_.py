@@ -179,7 +179,7 @@ def run_env(budget, auc_num, budget_para):
         hour_clks_df = pd.DataFrame(hour_clks_array)
         hour_clks_df.to_csv('result/train_hour_clks_' + str(budget_para) + '.csv')
 
-        if (episode + 1) % 10 == 0:
+        if (episode + 1) % 1 == 0:
             print('\n########当前测试结果########\n')
             test_result = test_env(config['test_budget'] * budget_para, int(config['test_auc_num']), budget_para)
             test_records_array.append(test_result)
