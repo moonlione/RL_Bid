@@ -123,16 +123,6 @@ class DRLB:
             action = self.action_space[index]  # 随机选择动作
         return action
 
-    # 选择最优动作
-    def choose_best_action(self, state):
-        # 统一 state 的 shape (1, size_of_state)
-        state = torch.unsqueeze(torch.FloatTensor(state), 0).cuda()
-
-        actions_value = self.eval_net.forward(state)
-        action_index = torch.max(actions_value, 1)[1].data.cpu().numpy()[0]
-        action = self.action_space[action_index]  # 选择q_eval值最大的那个动作
-        return action
-
     # 定义DQN的学习过程
     def learn(self):
         # 清除显存缓存

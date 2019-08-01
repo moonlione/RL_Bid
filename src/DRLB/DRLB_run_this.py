@@ -320,7 +320,7 @@ def run_test(budget, auc_num, optimal_lamda, budget_para):
             state_t, lamda_t, B_t, reward_t, profit_t, t_clks, bid_arrays, t_remain_auc_num, t_win_imps, t_real_imps, t_real_clks, t_spent\
                 = state_(budget, auc_num, auc_t_datas, auc_t_data_pctrs,
                                                                          init_lamda, B_t, time_t, remain_auc_num)  # 1时段
-            action = RL.choose_best_action(state_t)
+            action = RL.choose_action(state_t)
 
             lamda_t_next = lamda_t * (1 + action)
 
@@ -329,7 +329,7 @@ def run_test(budget, auc_num, optimal_lamda, budget_para):
             state_t, lamda_t, B_t, reward_t, profit_t, t_clks, bid_arrays, t_remain_auc_num, t_win_imps, t_real_imps, t_real_clks, t_spent\
                 = state_(budget, auc_num, auc_t_datas, auc_t_data_pctrs,
                                                                          temp_lamda_t_next, temp_B_t_next, time_t, temp_remain_t_auctions)
-            action = RL.choose_best_action(state_t)
+            action = RL.choose_action(state_t)
 
             lamda_t_next = lamda_t * (1 + action)
 
