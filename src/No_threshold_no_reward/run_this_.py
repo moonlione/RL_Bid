@@ -65,8 +65,6 @@ def run_env(budget, auc_num, budget_para):
 
             # RL代理根据状态选择动作)
             action, mark = RL.choose_action(state_deep_copy)
-            action = action if action <= 300 else 300
-            action = action if action > 0 else 1
             current_mark = mark
 
             # 获取剩下的数据
@@ -124,7 +122,7 @@ def run_env(budget, auc_num, budget_para):
             step += 1
 
             # 当经验池数据达到一定量后再进行学习
-            if (step > config['observation_size'] == 0) and (step % config['batch_size'] == 0):  # 控制更新速度
+            if (step > config['observation_size']) and (step % config['batch_size'] == 0):  # 控制更新速度
                 RL.learn()
 
             if bid_nums % 500000 == 0:

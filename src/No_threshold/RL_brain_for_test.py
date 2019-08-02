@@ -4,8 +4,6 @@ import torch.nn as nn
 import torch.nn.functional as F
 from src.config import config
 
-np.random.seed(1)
-
 class Net(nn.Module):
     def __init__(self, feature_numbers, action_numbers):
         super(Net, self).__init__()

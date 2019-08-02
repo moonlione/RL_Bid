@@ -137,7 +137,7 @@ def run_env(budget, auc_num, budget_para):
                                            auc_data[config['data_marketprice_index']]])
 
             # 当经验池数据达到一定量后再进行学习
-            if (step > config['observation_size'] == 0) and (step % config['batch_size'] == 0):  # 控制更新速度
+            if (step > config['observation_size']) and (step % config['batch_size'] == 0):  # 控制更新速度
                 RL.learn()
 
             # 将下一个state_变为 下次循环的state
@@ -299,8 +299,6 @@ def test_env(budget, auc_num, budget_para):
 
         # RL代理根据状态选择动作
         action = RL.choose_best_action(state_deep_copy)
-        action = action if action <= 300 else 300
-        action = action if action > 0 else 1
 
         # 获得remainClks和remainBudget的比例，以及punishRate
         remainClkRate = (test_total_clks - real_clks) / test_total_clks
