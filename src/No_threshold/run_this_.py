@@ -117,7 +117,10 @@ def run_env(budget, auc_num, budget_para):
             # RL代理将 状态-动作-奖励-下一状态 存入经验池
             # 深拷贝
             state_next_deep_copy = copy.deepcopy(state_)
-            state_next_deep_copy[0], state_next_deep_copy[1] = state_next_deep_copy[0] / budget, \
+            if state_next_deep_copy[0] <= 0 or state_next_deep_copy[1] <= 0:
+                state_next_deep_copy = np.array([0,0,0]) # terminal state
+            else:
+                state_next_deep_copy[0], state_next_deep_copy[1] = state_next_deep_copy[0] / budget, \
                                                                state_next_deep_copy[1] / auc_num
 
             transition = np.hstack((state_deep_copy.tolist(), [action, reward], state_next_deep_copy))
@@ -134,7 +137,7 @@ def run_env(budget, auc_num, budget_para):
                                            auc_data[config['data_marketprice_index']]])
 
             # 当经验池数据达到一定量后再进行学习
-            if (step > config['batch_size']) and (step % config['batch_size'] == 0):  # 控制更新速度
+            if (step > config['observation_size'] == 0) and (step % config['batch_size'] == 0):  # 控制更新速度
                 RL.learn()
 
             # 将下一个state_变为 下次循环的state

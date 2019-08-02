@@ -19,6 +19,7 @@ config = {
     'neuron_nums': 100,
     'GPU_fraction': 1,
     'relace_target_iter': 100,
+    'observation_size': 500,
     'memory_size': 100000,
     'batch_size': 32,
 }
