@@ -217,7 +217,7 @@ def run_env(budget, auc_num, budget_para):
                     t_win_imps_next, t_real_imps_next, t_real_clks_next, t_spent_next\
                         = state_(budget, auc_num,auc_t_datas_next,auc_t_data_pctrs_next,lamda_t_next,B_t,time_t + 1, t_remain_auc_num)
 
-                    if t + 1 == 96:
+                    if t + 1 == 95:
                         init_lamda = lamda_t_next
                         optimal_lamda = lamda_t_next
                         temp_lamda_record.append(optimal_lamda)
@@ -242,8 +242,8 @@ def run_env(budget, auc_num, budget_para):
                   .format(episode + 1, t + 1, episode_imps, episode_win_imps, episode_clks, episode_real_clks, episode_profit, budget, episode_spent, episode_spent/episode_win_imps if episode_win_imps > 0 else 0, datetime.datetime.now()))
             state_t_action_win_index = np.hstack((state_t, action, reward_t, bid_arrays)).tolist()
             run_reward_net(train_data, state_t_action_win_index, t)  # 更新算法2 8-10行
-            if (episode == 0):
-                if ((t+1) >= config['batch_size']): # 控制更新速度
+            if episode == 0:
+                if (t+1) >= config['batch_size']: # 控制更新速度
                     RL.learn()
             else:
                 RL.learn()
@@ -328,7 +328,7 @@ def run_test(budget, auc_num, optimal_lamda, budget_para):
 
             temp_lamda_t_next, temp_B_t_next, temp_remain_t_auctions = lamda_t_next, B_t, t_remain_auc_num
 
-            if t + 1 == 96:
+            if t + 1 == 95:
                 lamda_record.append(lamda_t_next)
 
         pay_prices = np.hstack((pay_prices, auc_t_datas.iloc[:, 2].values))
