@@ -3,6 +3,7 @@ import random
 import torch
 import torch.nn as nn
 import torch.nn.functional as F
+from src.DRLB.config import config
 
 def setup_seed(seed):
     torch.manual_seed(seed)
@@ -10,7 +11,6 @@ def setup_seed(seed):
     np.random.seed(seed)
     random.seed(seed)
     torch.backends.cudnn.deterministic = True
-
 # 设置随机数种子
 setup_seed(1)
 
@@ -30,7 +30,7 @@ class Net(nn.Module):
         self.fc2.weight.data.normal_(0, 0.1)  # 全连接隐层 2 的参数初始化
         self.fc3 = nn.Linear(neuron_numbers_1, neuron_numbers_2)
         self.fc3.weight.data.normal_(0, 0.1)  # 全连接隐层 2 的参数初始化
-        self.out = nn.Linear(neuron_numbers_1, reward_numbers)
+        self.out = nn.Linear(neuron_numbers_2, reward_numbers)
         self.out.weight.data.normal_(0, 0.1)
 
     def forward(self, input):
@@ -85,8 +85,7 @@ class RewardNet:
     def return_model_reward(self, state):
         # 统一 observation 的 shape (1, size_of_observation)
         state = torch.unsqueeze(torch.FloatTensor(state), 0).cuda()
-
-        model_reward = self.model_reward.forward(state)
+        model_reward = self.model_reward.forward(state).detach().cpu().numpy()
         return model_reward
 
     def store_state_action_pair(self, s, a, model_reward):
@@ -98,13 +97,15 @@ class RewardNet:
         self.memory_S[index, :] = state_action_pair
         self.memory_S_counter += 1
 
+        if index >= config['batch_size']:
+            self.learn()
+
     def store_state_action_reward(self, direct_reward):
-        for i, memory_s in enumerate(self.memory_S):
-            rtn_m = max(self.memory_S[i, -1], direct_reward)
-            state_action_rtn = np.hstack((self.memory_S[i, :self.feature_numbers+1], rtn_m))
-            index = self.memory_D2_counter % self.memory_size
-            self.memory_D2[index, :] = state_action_rtn
-            self.memory_D2_counter += 1
+        index = self.memory_D2_counter % self.memory_size
+        rtn_m = max(self.memory_S[index, -1], direct_reward)
+        state_action_rtn = np.hstack((self.memory_S[index, :self.feature_numbers+1], rtn_m))
+        self.memory_D2[index, :] = state_action_rtn
+        self.memory_D2_counter += 1
 
     def learn(self):
         if self.memory_D2_counter > self.memory_size:
