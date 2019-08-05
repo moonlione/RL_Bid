@@ -23,7 +23,7 @@ config = {
     'test_auc_num': 478109, # 68244
     'budget_para': [1/16],
     'train_episodes': 1000,
-    'neuron_nums': 50,
+    'neuron_nums': 100,
     'GPU_fraction': 1,
     'relace_target_iter': 100,
     'observation_size': 5000,
