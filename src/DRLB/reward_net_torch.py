@@ -23,7 +23,6 @@ class Net(nn.Module):
         # 第二层网络的神经元个数，第二层神经元的个数为动作数组的个数
         neuron_numbers_2 = 100
 
-        self.dropout = nn.Dropout(p=0.5)
         self.fc1 = nn.Linear(feature_numbers, neuron_numbers_1)
         self.fc1.weight.data.normal_(0, 0.1)  # 全连接隐层 1 的参数初始化
         self.fc2 = nn.Linear(neuron_numbers_1, neuron_numbers_2)
@@ -35,13 +34,10 @@ class Net(nn.Module):
 
     def forward(self, input):
         x_1 = self.fc1(input)
-        x_1 = self.dropout(x_1)
         x_1 = F.relu(x_1)
         x_2 = self.fc2(x_1)
-        x_2 = self.dropout(x_2)
         x_2 = F.relu(x_2)
         x_3 = self.fc2(x_2)
-        x_3 = self.dropout(x_3)
         x_3 = F.relu(x_3)
         actions_value = self.out(x_3)
         return actions_value
@@ -78,14 +74,13 @@ class RewardNet:
         self.model_reward, self.real_reward = Net(self.feature_numbers, self.reward_numbers).cuda(), Net(self.feature_numbers, self.reward_numbers).cuda()
 
         # 优化器
-        self.optimizer = torch.optim.SGD(self.model_reward.parameters(), lr=self.lr, momentum=0.95,  weight_decay=0.01)
+        self.optimizer = torch.optim.SGD(self.model_reward.parameters(), lr=self.lr, momentum=0.95)
         # 损失函数为，均方损失函数
         self.loss_func = nn.MSELoss().cuda()
 
     def return_model_reward(self, state):
         # 统一 observation 的 shape (1, size_of_observation)
         state = torch.unsqueeze(torch.FloatTensor(state), 0).cuda()
-        self.model_reward.eval()
         model_reward = self.model_reward.forward(state).detach().cpu().numpy()
         return model_reward
 

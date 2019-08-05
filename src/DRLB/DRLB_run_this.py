@@ -23,7 +23,7 @@ def run_reward_net(train_data, state_array, t):
 
 
     win_auc_datas = auc_t_datas[auc_t_datas.iloc[:, 2] <= bid_arrays]  # 赢标的数据
-    direct_reward_t = np.sum(win_auc_datas.iloc[:, 1].values * cpc - win_auc_datas.iloc[:, 2].values)
+    direct_reward_t = np.sum(win_auc_datas.iloc[:, 0])
     V += direct_reward_t
 
     RewardNet.store_state_action_pair(state_t, action_t, m_reward_t)
@@ -138,11 +138,12 @@ def state_(budget, auc_num, auc_t_datas, auc_t_data_pctrs, lamda, B_t, time_t, r
     ROL_t = 96 - time_t - 1
     CPM_t = t_spent / t_win_imps if t_spent != 0 else 0
     WR_t = t_win_imps / t_auctions if t_auctions > 0 else 0
-    state_t = [time_t+1, B_t[time_t], ROL_t, BCR_t, CPM_t, WR_t, reward_t]
+    # state_t = [time_t+1, B_t[time_t], ROL_t, BCR_t, CPM_t, WR_t, reward_t]
+    state_t = [(time_t + 1)/96, B_t[time_t]/budget, ROL_t/96, BCR_t, CPM_t/100, WR_t, reward_t]
 
     net_reward_t = RewardNet.return_model_reward(state_t)
-    # state_t = [(time_t + 1)/96, B_t[time_t]/budget, ROL_t/96, BCR_t, CPM_t/100, WR_t, net_reward_t[0][0]]
-    state_t = [time_t + 1, B_t[time_t], ROL_t, BCR_t, CPM_t, WR_t, net_reward_t[0][0]]
+    state_t = [(time_t + 1)/96, B_t[time_t]/budget, ROL_t/96, BCR_t, CPM_t/100, WR_t, net_reward_t[0][0]]
+    # state_t = [time_t + 1, B_t[time_t], ROL_t, BCR_t, CPM_t, WR_t, net_reward_t[0][0]]
     t_real_clks = np.sum(auc_t_datas.iloc[:, 0])
 
     t_real_imps = len(auc_t_datas)
