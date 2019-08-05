@@ -21,7 +21,8 @@ class Net(nn.Module):
         x = F.relu(x)
         x_ = self.fc2(x)
         x_ = F.relu(x_)
-        actions_value = self.out(x_)
+        y = self.out(x_)
+        actions_value = F.softmax(y, dim=1)
         return actions_value
 
 def store_para(Net, model_name):

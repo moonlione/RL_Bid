@@ -32,7 +32,8 @@ class Net(nn.Module):
         x = F.relu(x)
         x_ = self.fc2(x)
         x_ = F.relu(x_)
-        actions_value = self.out(x_)
+        y = self.out(x_)
+        actions_value = F.softmax(y, dim=1)
         return actions_value
 
 def store_para(Net):
@@ -46,6 +47,11 @@ class PolicyGradient:
             learning_rate=0.01,
             reward_decay=1,
     ):
+        if not os.path.exists('result'):
+            os.mkdir('result')
+        elif not os.path.exists('Model'):
+            os.mkdir('Model')
+
         self.action_nums = action_nums
         self.feature_nums = feature_nums
         self.lr = learning_rate

@@ -6,19 +6,13 @@ import numpy as np
 import pandas as pd
 import copy
 import datetime
-from src.config import config
+from src.PG.No_threshold_no_reward.config import config
 
 def run_env(budget, auc_num, budget_para):
     env.build_env(budget, auc_num)  # 参数为训练集的(预算， 预期展示次数)
     # 训练
     print('data loading')
-    train_data = pd.read_csv("../../data/train_data.csv", header=None).drop([0])
-    train_data.iloc[:, config['data_clk_index']:config['data_marketprice_index']+1] \
-        = train_data.iloc[:, config['data_clk_index']:config['data_marketprice_index']+1].astype(
-        int)
-    train_data.iloc[:, config['data_pctr_index']] \
-        = train_data.iloc[:, config['data_pctr_index']].astype(
-        float)
+    train_data = pd.read_csv("../../../data/train_fm_embedding.csv", header=None).drop([0])
 
     train_data = train_data.values
     records_array = []  # 用于记录每一轮的最终奖励，以及赢标（展示的次数）
@@ -205,13 +199,7 @@ def test_env(budget, auc_num, budget_para):
     env.build_env(budget, auc_num)  # 参数为测试集的(预算， 总展示次数)
     state = env.reset(budget, auc_num)  # 参数为测试集的(预算， 总展示次数)
 
-    test_data = pd.read_csv("../../data/test_data.csv", header=None).drop([0])
-    test_data.iloc[:, config['data_clk_index']:config['data_marketprice_index'] + 1] \
-        = test_data.iloc[:, config['data_clk_index']:config['data_marketprice_index'] + 1].astype(
-        int)
-    test_data.iloc[:, config['data_pctr_index']] \
-        = test_data.iloc[:, config['data_pctr_index']].astype(
-        float)
+    test_data = pd.read_csv("../../../data/test_fm_embedding.csv", header=None).drop([0])
 
     test_data = test_data.values
     result_array = []  # 用于记录每一轮的最终奖励，以及赢标（展示的次数）

@@ -1,6 +1,6 @@
 import numpy as np
 import random
-from src.config import config
+from src.PG.No_threshold_no_reward.config import config
 
 random.seed(1)
 class AD_env:
