@@ -1,14 +1,23 @@
 import numpy as np
+import random
 import torch
 import torch.nn as nn
 import torch.nn.functional as F
 from src.config import config
 import os
 
-np.random.seed(1)
+def setup_seed(seed):
+    torch.manual_seed(seed)
+    torch.cuda.manual_seed_all(seed)
+    np.random.seed(seed)
+    random.seed(seed)
+    torch.backends.cudnn.deterministic = True
+
+# 设置随机数种子
+setup_seed(1)
 
 class Net(nn.Module):
-    def __init__(self, feature_numbers, action_numbers):
+    def __init__(self, feature_numbers, reward_numbers):
         super(Net, self).__init__()
 
         # 第一层网络的神经元个数，第二层神经元的个数为动作数组的个数
@@ -16,21 +25,25 @@ class Net(nn.Module):
         # 第二层网络的神经元个数，第二层神经元的个数为动作数组的个数
         neuron_numbers_2 = 100
 
+        self.dropout = nn.Dropout(p=0.5)
         self.fc1 = nn.Linear(feature_numbers, neuron_numbers_1)
         self.fc1.weight.data.normal_(0, 0.1)  # 全连接隐层 1 的参数初始化
         self.fc2 = nn.Linear(neuron_numbers_1, neuron_numbers_2)
         self.fc2.weight.data.normal_(0, 0.1)  # 全连接隐层 2 的参数初始化
-        self.fc3 = nn.Linear(neuron_numbers_2, neuron_numbers_2)
-        self.fc3.weight.data.normal_(0, 0.1)  # 全连接隐层 3 的参数初始化
-        self.out = nn.Linear(neuron_numbers_2, action_numbers)
-        self.out.weight.data.normal_(0, 0.1)  # 输出层
+        self.fc3 = nn.Linear(neuron_numbers_1, neuron_numbers_2)
+        self.fc3.weight.data.normal_(0, 0.1)  # 全连接隐层 2 的参数初始化
+        self.out = nn.Linear(neuron_numbers_1, reward_numbers)
+        self.out.weight.data.normal_(0, 0.1)
 
     def forward(self, input):
         x_1 = self.fc1(input)
+        x_1 = self.dropout(x_1)
         x_1 = F.relu(x_1)
         x_2 = self.fc2(x_1)
+        x_2 = self.dropout(x_2)
         x_2 = F.relu(x_2)
-        x_3 = self.fc3(x_2)
+        x_3 = self.fc2(x_2)
+        x_3 = self.dropout(x_3)
         x_3 = F.relu(x_3)
         actions_value = self.out(x_3)
         return actions_value
@@ -85,7 +98,7 @@ class DRLB:
             self.feature_numbers, self.action_numbers).cuda()
 
         # 优化器
-        self.optimizer = torch.optim.RMSprop(self.eval_net.parameters(), lr=self.lr, alpha=0.9)
+        self.optimizer = torch.optim.SGD(self.eval_net.parameters(), lr=self.lr, momentum=0.95, weight_decay=0.01)
         # 损失函数为，均方损失函数
         self.loss_func = nn.MSELoss().cuda()
 
@@ -111,7 +124,7 @@ class DRLB:
         # 统一 state 的 shape, torch.unsqueeze()这个函数主要是对数据维度进行扩充
         state = torch.unsqueeze(torch.FloatTensor(state), 0).cuda()
 
-        if np.random.uniform() < self.epsilon:
+        if np.random.uniform() > max(self.epsilon, 0.5):
             # 让 eval_net 神经网络生成所有 action 的值, 并选择值最大的 action
             actions_value = self.eval_net.forward(state)
             # torch.max(input, dim, keepdim=False, out=None) -> (Tensor, LongTensor),按维度dim 返回最大值
@@ -121,16 +134,6 @@ class DRLB:
         else:
             index = np.random.randint(0, self.action_numbers)
             action = self.action_space[index]  # 随机选择动作
-        return action
-
-    # 选择最优动作
-    def choose_best_action(self, state):
-        # 统一 state 的 shape (1, size_of_state)
-        state = torch.unsqueeze(torch.FloatTensor(state), 0).cuda()
-
-        actions_value = self.eval_net.forward(state)
-        action_index = torch.max(actions_value, 1)[1].data.cpu().numpy()[0]
-        action = self.action_space[action_index]  # 选择q_eval值最大的那个动作
         return action
 
     # 定义DQN的学习过程
@@ -185,7 +188,7 @@ class DRLB:
 
     def control_epsilon(self, t):
         # 逐渐增加epsilon，增加行为的利用性
-        r_epsilon = 0.01  # 降低速率
+        r_epsilon = 0.001  # 降低速率
         self.epsilon = max(0.95 - r_epsilon * t, 0.05)
 
     # 只存储获得最优收益（点击）那一轮的参数

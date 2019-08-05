@@ -1,11 +1,20 @@
 import numpy as np
+import random
 import torch
 import torch.nn as nn
 import torch.nn.functional as F
 from src.config import config
 import os
 
-np.random.seed(1)
+def setup_seed(seed):
+    torch.manual_seed(seed)
+    torch.cuda.manual_seed_all(seed)
+    np.random.seed(seed)
+    random.seed(seed)
+    torch.backends.cudnn.deterministic = True
+
+# 设置随机数种子
+setup_seed(1)
 
 
 class Net(nn.Module):
@@ -13,16 +22,20 @@ class Net(nn.Module):
         super(Net, self).__init__()
         self.fc1 = nn.Linear(feature_numbers, config['neuron_nums'])
         self.fc1.weight.data.normal_(0, 0.1)  # 全连接隐层 1 的参数初始化
+        self.dropout1 = nn.Dropout(p=0.5)
         self.fc2 = nn.Linear(config['neuron_nums'], config['neuron_nums'])
         self.fc2.weight.data.normal_(0, 0.1)
+        self.dropout2 = nn.Dropout(p=0.5)
         self.out = nn.Linear(config['neuron_nums'], action_numbers)
         self.out.weight.data.normal_(0, 0.1)  # 全连接隐层 2 的参数初始化
 
     def forward(self, input):
         x = self.fc1(input)
-        x = F.relu(x)
+        x = self.dropout1(x)
+        x = F.leaky_relu(x)
         x_ = self.fc2(x)
-        x_ = torch.tanh(x_)
+        x_ = self.dropout2(x_)
+        x_ = F.leaky_relu(x_)
         actions_value = self.out(x_)
         return actions_value
 
@@ -77,7 +90,7 @@ class DQN:
             self.feature_numbers, self.action_numbers).cuda()
 
         # 优化器
-        self.optimizer = torch.optim.RMSprop(self.eval_net.parameters(), lr=self.lr, alpha=0.9)
+        self.optimizer = torch.optim.Adam(self.eval_net.parameters(), lr=self.lr)
         # 损失函数为，均方损失函数
         self.loss_func = nn.MSELoss().cuda()
 
