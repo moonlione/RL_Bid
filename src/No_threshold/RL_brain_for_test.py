@@ -45,6 +45,7 @@ class DQN_FOR_TEST:
     # 选择最优动作
     def choose_best_action(self, state):
         torch.cuda.empty_cache()
+        self.eval_net.eval()
         # 统一 state 的 shape (1, size_of_state)
         state = torch.unsqueeze(torch.FloatTensor(state), 0).cuda()
         actions_value = self.eval_net.forward(state)

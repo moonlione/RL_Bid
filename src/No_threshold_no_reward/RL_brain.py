@@ -110,7 +110,7 @@ class DQN:
 
         # 统一 state 的 shape, torch.unsqueeze()这个函数主要是对数据维度进行扩充
         state = torch.unsqueeze(torch.FloatTensor(state), 0).cuda()
-
+        self.eval_net.train()
         if np.random.uniform() < self.epsilon:
             # 让 eval_net 神经网络生成所有 action 的值, 并选择值最大的 action
             actions_value = self.eval_net.forward(state)
@@ -129,7 +129,7 @@ class DQN:
     def choose_best_action(self, state):
         # 统一 state 的 shape (1, size_of_state)
         state = torch.unsqueeze(torch.FloatTensor(state), 0).cuda()
-
+        self.eval_net.eval()
         actions_value = self.eval_net.forward(state)
         action_index = torch.max(actions_value, 1)[1].data.cpu().numpy()[0]
         action = self.action_space[action_index]  # 选择q_eval值最大的那个动作

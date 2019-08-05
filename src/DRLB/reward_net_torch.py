@@ -85,6 +85,7 @@ class RewardNet:
     def return_model_reward(self, state):
         # 统一 observation 的 shape (1, size_of_observation)
         state = torch.unsqueeze(torch.FloatTensor(state), 0).cuda()
+        self.model_reward.eval()
         model_reward = self.model_reward.forward(state).detach().cpu().numpy()
         return model_reward
 

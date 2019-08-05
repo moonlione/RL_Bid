@@ -115,7 +115,7 @@ class DQN:
         # 当pctr较高时, 增加epsilon使其利用率增高
         current_epsilon = self.epsilon + state_pctr * belta
         l_epsilon = current_epsilon if current_epsilon < self.epsilon_max else self.epsilon_max  # 当前数据使用的epsilon
-
+        self.eval_net.train()
         # 统一 state 的 shape, torch.unsqueeze()这个函数主要是对数据维度进行扩充
         state = torch.unsqueeze(torch.FloatTensor(state), 0).cuda()
 
@@ -137,7 +137,7 @@ class DQN:
     def choose_best_action(self, state):
         # 统一 state 的 shape (1, size_of_state)
         state = torch.unsqueeze(torch.FloatTensor(state), 0).cuda()
-
+        self.eval_net.eval()
         actions_value = self.eval_net.forward(state)
         action_index = torch.max(actions_value, 1)[1].data.cpu().numpy()[0]
         action = self.action_space[action_index]  # 选择q_eval值最大的那个动作

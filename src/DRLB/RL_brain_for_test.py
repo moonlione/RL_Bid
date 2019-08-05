@@ -65,10 +65,18 @@ class DRLB:
 
     # 选择最优动作
     def choose_best_action(self, state):
-        # 统一 state 的 shape (1, size_of_state)
+        torch.cuda.empty_cache()
+        # 统一 state 的 shape, torch.unsqueeze()这个函数主要是对数据维度进行扩充
         state = torch.unsqueeze(torch.FloatTensor(state), 0).cuda()
-
-        actions_value = self.eval_net.forward(state)
-        action_index = torch.max(actions_value, 1)[1].data.cpu().numpy()[0]
-        action = self.action_space[action_index]  # 选择q_eval值最大的那个动作
+        self.eval_net.train()
+        if np.random.uniform() > max(self.epsilon, 0.5):
+            # 让 eval_net 神经网络生成所有 action 的值, 并选择值最大的 action
+            actions_value = self.eval_net.forward(state)
+            # torch.max(input, dim, keepdim=False, out=None) -> (Tensor, LongTensor),按维度dim 返回最大值
+            # torch.max(a,1) 返回每一行中最大值的那个元素，且返回索引（返回最大元素在这一行的行索引）
+            action_index = torch.max(actions_value, 1)[1].data.cpu().numpy()[0]
+            action = self.action_space[action_index]  # 选择q_eval值最大的那个动作
+        else:
+            index = np.random.randint(0, self.action_numbers)
+            action = self.action_space[index]  # 随机选择动作
         return action
