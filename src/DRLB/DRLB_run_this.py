@@ -14,19 +14,18 @@ def bid_func(auc_pCTRS, lamda):
 def run_reward_net(train_data, state_array, t):
     cpc = 30000
     V = 0 # 直接奖励值
-    state_t = state_array[0:7]
-    action_t = state_array[7]
-    m_reward_t = state_array[8]
-    bid_arrays = state_array[9:]
+    for i in range(len(state_array)):
+        state_t = state_array[i][0:7]
+        action_t = state_array[i][7]
+        m_reward_t = state_array[i][8]
+        bid_arrays = state_array[i][9:]
+        auc_t_datas = train_data[train_data.iloc[:, 3].isin([i + 1])]  # t时段的数据
 
-    auc_t_datas = train_data[train_data.iloc[:, 3].isin([t + 1])]  # t时段的数据
+        win_auc_datas = auc_t_datas[auc_t_datas.iloc[:, 2] <= bid_arrays]  # 赢标的数据
+        direct_reward_t = np.sum(win_auc_datas.iloc[:, 0])
+        V += direct_reward_t
 
-
-    win_auc_datas = auc_t_datas[auc_t_datas.iloc[:, 2] <= bid_arrays]  # 赢标的数据
-    direct_reward_t = np.sum(win_auc_datas.iloc[:, 0])
-    V += direct_reward_t
-
-    RewardNet.store_state_action_pair(state_t, action_t, m_reward_t)
+        RewardNet.store_state_action_pair(state_t, action_t, m_reward_t)
 
     RewardNet.store_state_action_reward(V)
 
@@ -242,7 +241,9 @@ def run_env(budget, auc_num, budget_para):
                   '利润{}, 预算{}, 花费{}, CPM{}, {}'
                   .format(episode + 1, t + 1, episode_imps, episode_win_imps, episode_clks, episode_real_clks, episode_profit, budget, episode_spent, episode_spent/episode_win_imps if episode_win_imps > 0 else 0, datetime.datetime.now()))
             state_t_action_win_index = np.hstack((state_t, action, reward_t, bid_arrays)).tolist()
-            run_reward_net(train_data, state_t_action_win_index, t)  # 更新算法2 8-10行
+            reward_net_data.append(state_t_action_win_index)
+            if t == 95:
+                run_reward_net(train_data, reward_net_data, t)  # 更新算法2 8-10行
             if episode == 0:
                 if (t+1) >= config['batch_size']: # 控制更新速度
                     RL.learn()
