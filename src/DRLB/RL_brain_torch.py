@@ -184,7 +184,7 @@ class DRLB:
 
     def control_epsilon(self, t):
         # 逐渐增加epsilon，增加行为的利用性
-        r_epsilon = 0.0001  # 降低速率
+        r_epsilon = 0.001  # 降低速率
         self.epsilon = max(0.95 - r_epsilon * t, 0.05)
 
     # 只存储获得最优收益（点击）那一轮的参数

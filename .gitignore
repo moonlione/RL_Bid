@@ -15,11 +15,11 @@ src/__pycache__/
 /src/No_threshold_no_reward/result/
 /src/AC/No_threshold_no_reward/__pycache__/
 /src/AC/No_threshold_no_reward/result/
-/src/AC/No_threshold_no_reward/model/
+/src/AC/No_threshold_no_reward/Model/
 /src/PG/No_threshold_no_reward/__pycache__/
 /src/PG/No_threshold_no_reward/result/
-/src/PG/No_threshold_no_reward/model/
+/src/PG/No_threshold_no_reward/Model/
 /src/PG/No_threshold/__pycache__/
 /src/PG/No_threshold/result/
-/src/PG/No_threshold/model/
+/src/PG/No_threshold/Model/
 
