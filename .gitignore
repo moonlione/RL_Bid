@@ -24,4 +24,7 @@ src/__pycache__/
 /src/PG/No_threshold/Model/
 /src/Test_seg_action/Model/
 /src/Test_seg_action/result/
-src/Test_seg_action/__pycache__/
+/src/Test_seg_action/__pycache__/
+/src/Temp_seg_action/Model/
+/src/Temp_seg_action/result/
+/src/Temp_seg_action/__pycache__/
