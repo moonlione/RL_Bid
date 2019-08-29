@@ -25,7 +25,6 @@ def run_env(budget, auc_num, budget_para):
     for episode in range(config['train_episodes']):
         e_clks = [0 for i in range(24)] # episode各个时段所获得的点击数，以下类推
         e_cost = [0 for i in range(24)]
-        e_aucs = [0 for i in range(24)]
         e_actions = [0 for i in range(24)]
         init_action = 0
         next_action = 0
@@ -46,7 +45,6 @@ def run_env(budget, auc_num, budget_para):
                 action = next_action
             e_cost[t] = np.sum(win_auctions[:, config['data_marketprice_index']])
             e_clks[t] = np.sum(win_auctions[:, config['data_clk_index']])
-            e_aucs[t] = len(auc_datas)
             if np.sum(e_cost) >= budget:
                 # print('早停时段{}'.format(t))
                 temp_cost = 0
@@ -66,7 +64,6 @@ def run_env(budget, auc_num, budget_para):
                         temp_cost += temp_market_price
                         temp_aucs += 1
                 e_cost[t] = temp_cost
-                e_aucs[t] = temp_aucs
                 break
 
             ctr_t = np.sum(win_auctions[:, config['data_clk_index']]) / len(win_auctions)
@@ -82,10 +79,9 @@ def run_env(budget, auc_num, budget_para):
                 e_actions[t] = action_
             reward = e_clks[t]
             RL.store_transition(state, action, reward)
-        vt = RL.learn()
+        loss, vt = RL.learn()
         if episode % 100 == 0:
             print('episode {}, budget-{}, cost-{}, clks-{}, loss\n'.format(episode, budget, np.sum(e_cost), int(np.sum(e_clks)), loss))
-        if episode % 100 == 0:
             test_env(config['test_budget'] * budget_para, int(config['test_auc_num']), budget_para)
 
 def test_env(budget, auc_num, budget_para):
@@ -103,7 +99,6 @@ def test_env(budget, auc_num, budget_para):
     eCPC = 30000  # 每次点击花费
     e_clks = [0 for i in range(24)]  # episode各个时段所获得的点击数，以下类推
     e_cost = [0 for i in range(24)]
-    e_aucs = [0 for i in range(24)]
     e_actions = [0 for i in range(24)]
     init_action = 0
     next_action = 0

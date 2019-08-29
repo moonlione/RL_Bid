@@ -52,7 +52,7 @@ class PolicyGradient:
         elif not os.path.exists('Model'):
             os.mkdir('Model')
 
-        self.action_space = [-0.9, -0.5, -0.1, 0, 0.1, 0.5, 0.9]
+        # self.action_space = [-0.9, -0.5, -0.1, 0, 0.1, 0.5, 0.9]
         self.action_nums = action_nums
         self.feature_nums = feature_nums
         self.lr = learning_rate
@@ -74,17 +74,19 @@ class PolicyGradient:
         torch.cuda.empty_cache()
         state = torch.unsqueeze(torch.FloatTensor(state), 0).cuda()
         prob_weights = self.policy_net.forward(state).detach().cpu().numpy()
-        action_index = np.random.choice(range(0, prob_weights.shape[1]), p=prob_weights.ravel())
-        action = self.action_space[action_index]
+        # action_index = np.random.choice(range(0, prob_weights.shape[1]), p=prob_weights.ravel())
+        # action = self.action_space[action_index]
+        action = prob_weights
         return action
 
     def choose_best_action(self, state):
         torch.cuda.empty_cache()
         state = torch.unsqueeze(torch.FloatTensor(state), 0).cuda()
         prob_weights = self.policy_net.forward(state).detach().cpu().numpy()
-        action_index = np.argmax(prob_weights)
-        action = self.action_space[action_index]
-        
+        # action_index = np.argmax(prob_weights)
+        # action = self.action_space[action_index]
+
+        action = prob_weights
         return action
 
     # 储存一回合的s,a,r；因为每回合训练
