@@ -84,7 +84,7 @@ def run_env(budget, auc_num, budget_para):
             RL.store_transition(state, action, reward)
         vt = RL.learn()
         if episode % 100 == 0:
-            print('episode {}, budget-{}, cost-{}, clks-{}\n'.format(episode, budget, np.sum(e_cost), int(np.sum(e_clks))))
+            print('episode {}, budget-{}, cost-{}, clks-{}, loss\n'.format(episode, budget, np.sum(e_cost), int(np.sum(e_clks)), loss))
         if episode % 100 == 0:
             test_env(config['test_budget'] * budget_para, int(config['test_auc_num']), budget_para)
 
@@ -158,10 +158,8 @@ def test_env(budget, auc_num, budget_para):
             e_actions[t] = action_
         reward = e_clks[t]
         actions.append(action)
-        RL.store_transition(state, action, reward)
-    loss, vt = RL.learn()
     print('-----------测试结果-----------\n')
-    print('budget-{}, cost-{}, clks-{}, loss-{}\n'.format(budget, np.sum(e_cost), int(np.sum(e_clks)), loss))
+    print('budget-{}, cost-{}, clks-{}\n'.format(budget, np.sum(e_cost), int(np.sum(e_clks))))
 
     actions_df = pd.DataFrame(data=actions)
     actions_df.to_csv('result/test_action_' + str(budget_para) + '.csv')
