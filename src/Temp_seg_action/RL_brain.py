@@ -131,7 +131,7 @@ class PolicyGradient:
 
         # 训练完后清除训练数据，开始下一轮
         self.ep_states, self.ep_as, self.ep_rs = [], [], []
-        return discounted_ep_rs_norm
+        return loss, discounted_ep_rs_norm
 
     # 只存储获得最优收益（点击）那一轮的参数
     def para_store_iter(self, test_results):
