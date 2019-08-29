@@ -25,6 +25,7 @@ def run_env(budget, auc_num, budget_para):
     for episode in range(config['train_episodes']):
         e_clks = [0 for i in range(24)] # episode各个时段所获得的点击数，以下类推
         e_cost = [0 for i in range(24)]
+        e_aucs = [0 for i in range(24)]
         e_actions = [0 for i in range(24)]
         init_action = 0
         next_action = 0
@@ -36,8 +37,8 @@ def run_env(budget, auc_num, budget_para):
             if t == 0:
                 bids = auc_datas[:, config['data_pctr_index']] * eCPC / (1 + init_action)
                 win_auctions = auc_datas[bids >= auc_datas[:, config['data_marketprice_index']]]
-                state = np.array([0])
-                action = init_action
+                state = np.array([1, 1, 0])
+                action = RL.choose_action(state)
             else:
                 bids = auc_datas[:, config['data_pctr_index']] * eCPC / (1 + next_action)
                 win_auctions = auc_datas[bids >= auc_datas[:, config['data_marketprice_index']]]
@@ -45,9 +46,11 @@ def run_env(budget, auc_num, budget_para):
                 action = next_action
             e_cost[t] = np.sum(win_auctions[:, config['data_marketprice_index']])
             e_clks[t] = np.sum(win_auctions[:, config['data_clk_index']])
+            e_aucs[t] = len(auc_datas)
             if np.sum(e_cost) >= budget:
                 # print('早停时段{}'.format(t))
                 temp_cost = 0
+                temp_aucs = 0
                 for i in range(len(auc_datas)):
                     if temp_cost >= (budget - np.sum(e_cost[:t])):
                         break
@@ -61,11 +64,13 @@ def run_env(budget, auc_num, budget_para):
                     if bid > temp_market_price:
                         e_clks[t] += current_data[config['data_clk_index']]
                         temp_cost += temp_market_price
+                        temp_aucs += 1
                 e_cost[t] = temp_cost
+                e_aucs[t] = temp_aucs
                 break
 
             ctr_t = np.sum(win_auctions[:, config['data_clk_index']]) / len(win_auctions)
-            state_ = np.array([ctr_t])
+            state_ = np.array([(budget - np.sum(e_cost[:t+1])) / budget, (auc_num - np.sum(e_aucs[:t+1])) / auc_num, ctr_t])
             action_ = RL.choose_action(state_)
             next_action = action_
             if t == 0:
@@ -95,6 +100,7 @@ def test_env(budget, auc_num, budget_para):
     eCPC = 30000  # 每次点击花费
     e_clks = [0 for i in range(24)]  # episode各个时段所获得的点击数，以下类推
     e_cost = [0 for i in range(24)]
+    e_aucs = [0 for i in range(24)]
     e_actions = [0 for i in range(24)]
     init_action = 0
     next_action = 0
@@ -108,8 +114,8 @@ def test_env(budget, auc_num, budget_para):
         if t == 0:
             bids = auc_datas[:, config['data_pctr_index']] * eCPC / (1 + init_action)
             win_auctions = auc_datas[bids >= auc_datas[:, config['data_marketprice_index']]]
-            state = np.array([1,0])
-            action = init_action
+            state = np.array([1,1, 0])
+            action = RL.choose_best_action(state)
         else:
             bids = auc_datas[:, config['data_pctr_index']] * eCPC / (1 + next_action)
             win_auctions = auc_datas[bids >= auc_datas[:, config['data_marketprice_index']]]
@@ -120,6 +126,7 @@ def test_env(budget, auc_num, budget_para):
         if np.sum(e_cost) >= budget:
             # print('早停时段{}'.format(t))
             temp_cost = 0
+            temp_aucs = 0
             for i in range(len(auc_datas)):
                 if temp_cost >= (budget - np.sum(e_cost[:t])):
                     break
@@ -133,11 +140,13 @@ def test_env(budget, auc_num, budget_para):
                 if bid > temp_market_price:
                     e_clks[t] += current_data[config['data_clk_index']]
                     temp_cost += temp_market_price
+                    temp_aucs += 1
             e_cost[t] = temp_cost
+            e_aucs[t] = temp_aucs
             break
         ctr_t = np.sum(win_auctions[:, config['data_clk_index']]) / len(win_auctions)
-        state_ = np.array([(budget - np.sum(e_cost[:t+1])) / budget, ctr_t])
-        action_ = RL.choose_action(state_)
+        state_ = np.array([(budget - np.sum(e_cost[:t+1])) / budget, (auc_num - np.sum(e_aucs[:t+1])) / auc_num, ctr_t])
+        action_ = RL.choose_best_action(state_)
         next_action = action_
         if t == 0:
             e_actions[0] = init_action
@@ -157,7 +166,7 @@ if __name__ == '__main__':
     env = AD_env()
     RL = PolicyGradient(
         action_nums=env.action_numbers,
-        feature_nums=2,
+        feature_nums=3,
         learning_rate=config['pg_learning_rate'],
         reward_decay=config['reward_decay'],
     )
