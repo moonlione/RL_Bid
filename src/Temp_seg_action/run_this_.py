@@ -81,7 +81,7 @@ def run_env(budget, auc_num, budget_para):
             RL.store_transition(state, action, reward)
         loss, vt = RL.learn()
         if episode % 100 == 0:
-            print('episode {}, budget-{}, cost-{}, clks-{}, loss\n'.format(episode, budget, np.sum(e_cost), int(np.sum(e_clks)), loss))
+            print('episode {}, budget-{}, cost-{}, clks-{}, loss-{}\n'.format(episode, budget, np.sum(e_cost), int(np.sum(e_clks)), loss))
             test_env(config['test_budget'] * budget_para, int(config['test_auc_num']), budget_para)
 
 def test_env(budget, auc_num, budget_para):
