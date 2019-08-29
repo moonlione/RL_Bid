@@ -108,7 +108,7 @@ def test_env(budget, auc_num, budget_para):
         if t == 0:
             bids = auc_datas[:, config['data_pctr_index']] * eCPC / (1 + init_action)
             win_auctions = auc_datas[bids >= auc_datas[:, config['data_marketprice_index']]]
-            state = np.array([0])
+            state = np.array([1,0])
             action = init_action
         else:
             bids = auc_datas[:, config['data_pctr_index']] * eCPC / (1 + next_action)
@@ -136,7 +136,7 @@ def test_env(budget, auc_num, budget_para):
             e_cost[t] = temp_cost
             break
         ctr_t = np.sum(win_auctions[:, config['data_clk_index']]) / len(win_auctions)
-        state_ = np.array([ctr_t])
+        state_ = np.array([(budget - np.sum(e_cost[:t+1])) / budget, ctr_t])
         action_ = RL.choose_action(state_)
         next_action = action_
         if t == 0:
@@ -157,7 +157,7 @@ if __name__ == '__main__':
     env = AD_env()
     RL = PolicyGradient(
         action_nums=env.action_numbers,
-        feature_nums=1,
+        feature_nums=2,
         learning_rate=config['pg_learning_rate'],
         reward_decay=config['reward_decay'],
     )
