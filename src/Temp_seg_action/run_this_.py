@@ -79,9 +79,9 @@ def run_env(budget, auc_num, budget_para):
                 e_actions[t] = action_
             reward = e_clks[t]
             RL.store_transition(state, action, reward)
-        loss, vt = RL.learn()
+        vt = RL.learn()
         if episode % 100 == 0:
-            print('episode {}, budget-{}, cost-{}, clks-{}, loss-{}\n'.format(episode, budget, np.sum(e_cost), int(np.sum(e_clks)), loss))
+            print('episode {}, budget-{}, cost-{}, clks-{}\n'.format(episode, budget, np.sum(e_cost), int(np.sum(e_clks))))
         if episode % 100 == 0:
             test_env(config['test_budget'] * budget_para, int(config['test_auc_num']), budget_para)
 
@@ -126,7 +126,6 @@ def test_env(budget, auc_num, budget_para):
         if np.sum(e_cost) >= budget:
             # print('早停时段{}'.format(t))
             temp_cost = 0
-            temp_aucs = 0
             for i in range(len(auc_datas)):
                 if temp_cost >= (budget - np.sum(e_cost[:t])):
                     break
@@ -140,12 +139,10 @@ def test_env(budget, auc_num, budget_para):
                 if bid > temp_market_price:
                     e_clks[t] += current_data[config['data_clk_index']]
                     temp_cost += temp_market_price
-                    temp_aucs += 1
             e_cost[t] = temp_cost
-            e_aucs[t] = temp_aucs
             break
         ctr_t = np.sum(win_auctions[:, config['data_clk_index']]) / len(win_auctions)
-        state_ = np.array([(budget - np.sum(e_cost[:t+1])) / budget, (auc_num - np.sum(e_aucs[:t+1])) / auc_num, ctr_t])
+        state_ = np.array([(budget - np.sum(e_cost[:t+1])) / budget, ctr_t])
         action_ = RL.choose_best_action(state_)
         next_action = action_
         if t == 0:
@@ -155,8 +152,9 @@ def test_env(budget, auc_num, budget_para):
         reward = e_clks[t]
         actions.append(action)
         RL.store_transition(state, action, reward)
+    loss, vt = RL.learn()
     print('-----------测试结果-----------\n')
-    print('budget-{}, cost-{}, clks-{}\n'.format(budget, np.sum(e_cost), int(np.sum(e_clks))))
+    print('budget-{}, cost-{}, clks-{}, loss-{}\n'.format(budget, np.sum(e_cost), int(np.sum(e_clks)), loss))
 
     actions_df = pd.DataFrame(data=actions)
     actions_df.to_csv('result/test_action_' + str(budget_para) + '.csv')
@@ -165,7 +163,7 @@ if __name__ == '__main__':
     env = AD_env()
     RL = PolicyGradient(
         action_nums=env.action_numbers,
-        feature_nums=3,
+        feature_nums=2,
         learning_rate=config['pg_learning_rate'],
         reward_decay=config['reward_decay'],
     )
