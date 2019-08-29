@@ -156,7 +156,7 @@ def test_env(budget, auc_num, budget_para):
         actions.append(action)
         RL.store_transition(state, action, reward)
     print('-----------测试结果-----------\n')
-    print('budget-{}, cost-{}, clks-{}, loss-{}\n'.format(budget, np.sum(e_cost), int(np.sum(e_clks)), loss))
+    print('budget-{}, cost-{}, clks-{}\n'.format(budget, np.sum(e_cost), int(np.sum(e_clks))))
 
     actions_df = pd.DataFrame(data=actions)
     actions_df.to_csv('result/test_action_' + str(budget_para) + '.csv')
