@@ -28,3 +28,6 @@ src/__pycache__/
 /src/Temp_seg_action/Model/
 /src/Temp_seg_action/result/
 /src/Temp_seg_action/__pycache__/
+/src/DDPG/Model/
+/src/DDPG/result/
+/src/DDPG/__pycache__/

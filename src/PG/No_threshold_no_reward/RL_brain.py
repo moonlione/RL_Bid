@@ -63,6 +63,7 @@ class PolicyGradient:
 
         self.optimizer = torch.optim.Adam(self.policy_net.parameters(), lr=self.lr)
 
+
     def loss_func(self, all_act_prob, acts, vt):
         neg_log_prob = torch.sum(-torch.log(all_act_prob.gather(1, acts - 1))).cuda()
         loss = torch.mean(torch.mul(neg_log_prob, vt)).cuda()
