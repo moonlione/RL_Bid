@@ -31,7 +31,7 @@ def run_env(budget, budget_para):
         for t in range(24):
             auc_datas = train_data[train_data[:, config['data_hour_index']] == t]
             if t == 0:
-                state = np.array([1, 0, 0, 0]) # budget_left_ratio, cost_t_ratio, budget_spent_speed, ctr_t
+                state = np.array([(t + 1) / 24, 1, 0, 0, 0, 0]) # current_time_slot, budget_left_ratio, cost_t_ratio, budget_spent_speed, ctr_t, win_rate_t
                 action = RL.choose_action(state)
                 action = action + ou_noise()[0]
                 init_action = action
@@ -64,15 +64,19 @@ def run_env(budget, budget_para):
                         temp_win_auctions += 1
                 e_cost[t] = temp_cost
                 ctr_t = e_clks[t] / temp_win_auctions if temp_win_auctions > 0 else 0
+                win_rate_t = temp_win_auctions / len(auc_datas)
             else:
                 ctr_t = np.sum(win_auctions[:, config['data_clk_index']]) / len(win_auctions) if len(win_auctions) > 0 else 0
+                win_rate_t = len(win_auctions) / len(auc_datas)
+            budget_left_ratio = (budget - np.sum(e_cost[:t + 1])) / budget
+            budget_left_ratio = budget_left_ratio if budget_left_ratio >= 0 else 0
+            cost_t_ratio = e_cost[t] / budget
+            next_time_slot = (t + 2) / 24
             if t == 0:
-                state_ = np.array([(budget - np.sum(e_cost[:t+1])) / budget, e_cost[t] / budget, 1, ctr_t])
+                state_ = np.array([next_time_slot, budget_left_ratio, cost_t_ratio, 1, ctr_t, win_rate_t])
             else:
-                left_budget_ratio = (budget - np.sum(e_cost[:t+1])) / budget
-                left_budget_ratio = left_budget_ratio if left_budget_ratio >=0 else 0
                 budget_spent_speed = (e_cost[t] - e_cost[t-1]) / e_cost[t-1] if e_cost[t-1] > 0 else 1
-                state_ = np.array([left_budget_ratio, e_cost[t] / budget, budget_spent_speed, ctr_t])
+                state_ = np.array([next_time_slot, budget_left_ratio, cost_t_ratio, budget_spent_speed, ctr_t, win_rate_t])
             action_ = RL.choose_action(state_)
             action_ = action_ + ou_noise()[0]
             next_action = action_
@@ -115,10 +119,11 @@ def test_env(budget, budget_para):
     # 状态包括：当前CTR，
     for t in range(24):
         auc_datas = test_data[test_data[:, config['data_hour_index']] == t]
-
         if t == 0:
-            state = np.array([1, 0, 0, 0])
+            state = np.array([(t + 1) / 24, 1, 0, 0, 0,
+                              0])  # current_time_slot, budget_left_ratio, cost_t_ratio, budget_spent_speed, ctr_t, win_rate_t
             action = RL.choose_action(state)
+            action = action
             init_action = action
             bids = auc_datas[:, config['data_pctr_index']] * eCPC / (1 + init_action)
             win_auctions = auc_datas[bids >= auc_datas[:, config['data_marketprice_index']]]
@@ -149,15 +154,20 @@ def test_env(budget, budget_para):
                     temp_win_auctions += 1
             e_cost[t] = temp_cost
             ctr_t = e_clks[t] / temp_win_auctions if temp_win_auctions > 0 else 0
+            win_rate_t = temp_win_auctions / len(auc_datas)
         else:
-            ctr_t = np.sum(win_auctions[:, config['data_clk_index']]) / len(win_auctions) if len(win_auctions) > 0 else 0
+            ctr_t = np.sum(win_auctions[:, config['data_clk_index']]) / len(win_auctions) if len(
+                win_auctions) > 0 else 0
+            win_rate_t = len(win_auctions) / len(auc_datas)
+        budget_left_ratio = (budget - np.sum(e_cost[:t + 1])) / budget
+        budget_left_ratio = budget_left_ratio if budget_left_ratio >= 0 else 0
+        cost_t_ratio = e_cost[t] / budget
+        next_time_slot = (t + 2) / 24
         if t == 0:
-            state_ = np.array([(budget - np.sum(e_cost[:t + 1])) / budget, e_cost[t] / budget, 1, ctr_t])
+            state_ = np.array([next_time_slot, budget_left_ratio, cost_t_ratio, 1, ctr_t, win_rate_t])
         else:
-            left_budget_ratio = (budget - np.sum(e_cost[:t + 1])) / budget
-            left_budget_ratio = left_budget_ratio if left_budget_ratio >= 0 else 0
-            budget_spent_speed = (e_cost[t] - e_cost[t - 1]) / e_cost[t - 1] if e_cost[t-1] > 0 else 1
-            state_ = np.array([left_budget_ratio, e_cost[t] / budget, budget_spent_speed, ctr_t])
+            budget_spent_speed = (e_cost[t] - e_cost[t - 1]) / e_cost[t - 1] if e_cost[t - 1] > 0 else 1
+            state_ = np.array([next_time_slot, budget_left_ratio, cost_t_ratio, budget_spent_speed, ctr_t, win_rate_t])
         action_ = RL.choose_action(state_)
         next_action = action_
         if t == 0:

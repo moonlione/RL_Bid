@@ -18,11 +18,11 @@ config = {
     'test_budget': 30228554, # 14560732
     'test_auc_num': 478109, # 68244
     'budget_para': [1/16],
-    'train_episodes': 10000,
+    'train_episodes': 50000,
     'neuron_nums': 30,
     'GPU_fraction': 1,
     'relace_target_iter': 100,
     'observation_size': 5000,
-    'memory_size': 100000,
-    'batch_size': 128, # GPU对2的幂次的batch可以发挥更佳的性能，因此设置成16、32、64、128...时往往要比设置为整10、整100的倍数时表现更优
+    'memory_size': 10000,
+    'batch_size': 32, # GPU对2的幂次的batch可以发挥更佳的性能，因此设置成16、32、64、128...时往往要比设置为整10、整100的倍数时表现更优
 }
