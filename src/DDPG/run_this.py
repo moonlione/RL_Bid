@@ -17,8 +17,8 @@ def run_env(budget, budget_para):
     train_data = train_data.values
 
     ou_noise = OrnsteinUhlenbeckNoise(mu=np.zeros(1))
-
-    eCPC = 30000  # 每次点击花费
+    td_error, action_loss = 0,0
+    eCPC = 50000  # 每次点击花费
     for episode in range(config['train_episodes']):
         e_clks = [0 for i in range(24)] # episode各个时段所获得的点击数，以下类推
         e_cost = [0 for i in range(24)]
@@ -85,11 +85,12 @@ def run_env(budget, budget_para):
             if np.sum(e_cost) >= budget:
                 break
         if RL.memory_counter >= config['batch_size']:
-            RL.learn()
+            td_e, a_loss = RL.learn()
+            td_error, action_loss = td_e, a_loss
             RL.soft_update(RL.Actor, RL.Actor_)
             RL.soft_update(RL.Critic, RL.Critic_)
         if episode % 100 == 0:
-            print('episode {}, budget-{}, cost-{}, clks-{}\n'.format(episode, budget, np.sum(e_cost), int(np.sum(e_clks))))
+            print('episode {}, budget={}, cost={}, clks={}, td_error={}, action_loss={}\n'.format(episode, budget, np.sum(e_cost), int(np.sum(e_clks)), td_error, action_loss))
             test_env(config['test_budget'] * budget_para, budget_para)
 
 def test_env(budget, budget_para):
@@ -101,7 +102,7 @@ def test_env(budget, budget_para):
         = test_data.iloc[:, config['data_pctr_index']].astype(
         float)
     test_data = test_data.values
-    eCPC = 30000  # 每次点击花费
+    eCPC = 50000  # 每次点击花费
     e_clks = [0 for i in range(24)]  # episode各个时段所获得的点击数，以下类推
     e_cost = [0 for i in range(24)]
     e_actions = [0 for i in range(24)]
@@ -165,7 +166,7 @@ def test_env(budget, budget_para):
         if np.sum(e_cost) >= budget:
             break
     print('-----------测试结果-----------\n')
-    print('budget-{}, cost-{}, clks-{}\n'.format(budget, np.sum(e_cost), int(np.sum(e_clks))))
+    print('budget={}, cost={}, clks={}\n'.format(budget, np.sum(e_cost), int(np.sum(e_clks))))
 
     actions_df = pd.DataFrame(data=actions)
     actions_df.to_csv('result/test_action_' + str(budget_para) + '.csv')

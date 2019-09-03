@@ -97,6 +97,8 @@ class DDPG():
         a_loss.backward()
         self.optimizer_a.step()
 
+        return td_error, a_loss
+
 class OrnsteinUhlenbeckNoise:
     def __init__(self, mu):
         self.theta, self.dt, self.sigma = 0.1, 0.01, 0.1
