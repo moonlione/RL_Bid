@@ -27,20 +27,22 @@ def run_env(budget, budget_para):
         next_action = 0
 
         state_ = np.array([])
+
+        init_state = np.array([1, 0, 0, 0, 0]) # budget_left_ratio, cost_t_ratio, budget_spent_speed, ctr_t, cpc_t
         # 状态包括：当前CTR，
         for t in range(24):
             auc_datas = train_data[train_data[:, config['data_hour_index']] == t]
             if t == 0:
-                state = np.array([1, 0, 0])
+                state = init_state
                 action = RL.choose_action(state)
                 action = action + ou_noise()[0]
                 init_action = action
-                bids = auc_datas[:, config['data_pctr_index']] * eCPC * (1 + init_action)
+                bids = auc_datas[:, config['data_pctr_index']] * eCPC / (1 + init_action)
                 win_auctions = auc_datas[bids >= auc_datas[:, config['data_marketprice_index']]]
             else:
                 state = state_
                 action = next_action
-                bids = auc_datas[:, config['data_pctr_index']] * eCPC * (1 + action)
+                bids = auc_datas[:, config['data_pctr_index']] * eCPC / (1 + action)
                 win_auctions = auc_datas[bids >= auc_datas[:, config['data_marketprice_index']]]
             e_cost[t] = np.sum(win_auctions[:, config['data_marketprice_index']])
             e_clks[t] = np.sum(win_auctions[:, config['data_clk_index']])
@@ -57,7 +59,7 @@ def run_env(budget, budget_para):
                         temp_action = init_action
                     else:
                         temp_action = next_action
-                    bid = current_data[config['data_pctr_index']] * eCPC * (1 + temp_action)
+                    bid = current_data[config['data_pctr_index']] * eCPC / (1 + temp_action)
                     if bid > temp_market_price:
                         e_clks[t] += current_data[config['data_clk_index']]
                         temp_cost += temp_market_price
@@ -67,11 +69,11 @@ def run_env(budget, budget_para):
             else:
                 ctr_t = np.sum(win_auctions[:, config['data_clk_index']]) / len(win_auctions)
             if t == 0:
-                state_ = np.array([(budget - np.sum(e_cost[:t+1])) / budget, 1, ctr_t])
+                state_ = np.array([(budget - np.sum(e_cost[:t+1])) / budget, e_cost[t] / budget, 1, ctr_t, e_cost[t] / e_clks[t]])
             else:
                 left_budget_ratio = (budget - np.sum(e_cost[:t+1])) / budget
                 left_budget_ratio = left_budget_ratio if left_budget_ratio >=0 else 0
-                state_ = np.array([left_budget_ratio, (e_cost[t] - e_cost[t-1]) / e_cost[t-1], ctr_t])
+                state_ = np.array([left_budget_ratio, e_cost[t] / budget, (e_cost[t] - e_cost[t-1]) / e_cost[t-1], ctr_t, e_cost[t] / e_clks[t]])
             action_ = RL.choose_action(state_)
             action_ = action_ + ou_noise()[0]
             next_action = action_
@@ -111,20 +113,21 @@ def test_env(budget, budget_para):
 
     actions = []
     state_ = np.array([])
+
+    init_state = np.array([1, 0, 0, 0, 0])
     # 状态包括：当前CTR，
     for t in range(24):
         auc_datas = test_data[test_data[:, config['data_hour_index']] == t]
-
         if t == 0:
-            state = np.array([1, 0, 0])
+            state = init_state
             action = RL.choose_action(state)
             init_action = action
-            bids = auc_datas[:, config['data_pctr_index']] * eCPC * (1 + init_action)
+            bids = auc_datas[:, config['data_pctr_index']] * eCPC / (1 + init_action)
             win_auctions = auc_datas[bids >= auc_datas[:, config['data_marketprice_index']]]
         else:
             state = state_
             action = next_action
-            bids = auc_datas[:, config['data_pctr_index']] * eCPC * (1 + action)
+            bids = auc_datas[:, config['data_pctr_index']] * eCPC / (1 + action)
             win_auctions = auc_datas[bids >= auc_datas[:, config['data_marketprice_index']]]
         e_cost[t] = np.sum(win_auctions[:, config['data_marketprice_index']])
         e_clks[t] = np.sum(win_auctions[:, config['data_clk_index']])
@@ -141,7 +144,7 @@ def test_env(budget, budget_para):
                     temp_action = init_action
                 else:
                     temp_action = next_action
-                bid = current_data[config['data_pctr_index']] * eCPC * (1 + temp_action)
+                bid = current_data[config['data_pctr_index']] * eCPC / (1 + temp_action)
                 if bid > temp_market_price:
                     e_clks[t] += current_data[config['data_clk_index']]
                     temp_cost += temp_market_price
@@ -151,11 +154,11 @@ def test_env(budget, budget_para):
         else:
             ctr_t = np.sum(win_auctions[:, config['data_clk_index']]) / len(win_auctions)
         if t == 0:
-            state_ = np.array([(budget - np.sum(e_cost[:t + 1])) / budget, 1, ctr_t])
+            state_ = np.array([(budget - np.sum(e_cost[:t + 1])) / budget, e_cost[t] / budget, 1, ctr_t, e_cost[t] / e_clks[t]])
         else:
             left_budget_ratio = (budget - np.sum(e_cost[:t + 1])) / budget
             left_budget_ratio = left_budget_ratio if left_budget_ratio >= 0 else 0
-            state_ = np.array([left_budget_ratio, (e_cost[t] - e_cost[t - 1]) / e_cost[t - 1], ctr_t])
+            state_ = np.array([left_budget_ratio, e_cost[t] / budget, (e_cost[t] - e_cost[t - 1]) / e_cost[t - 1], ctr_t, e_cost[t] / e_clks[t]])
         action_ = RL.choose_action(state_)
         next_action = action_
         if t == 0:
