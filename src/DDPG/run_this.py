@@ -4,7 +4,7 @@ from src.DDPG.RL_brain import OrnsteinUhlenbeckNoise
 import pandas as pd
 import numpy as np
 
-def run_env(budget, auc_num, budget_para):
+def run_env(budget, budget_para):
     # 训练
     print('data loading')
     train_data = pd.read_csv("../../data/train_data.csv")
@@ -31,16 +31,17 @@ def run_env(budget, auc_num, budget_para):
         for t in range(24):
             auc_datas = train_data[train_data[:, config['data_hour_index']] == t]
             if t == 0:
-                bids = auc_datas[:, config['data_pctr_index']] * eCPC / (1 + init_action)
-                win_auctions = auc_datas[bids >= auc_datas[:, config['data_marketprice_index']]]
                 state = np.array([1, 0, 0])
                 action = RL.choose_action(state)
                 action = action + ou_noise()[0]
-            else:
-                bids = auc_datas[:, config['data_pctr_index']] * eCPC / (1 + next_action)
+                init_action = action
+                bids = auc_datas[:, config['data_pctr_index']] * eCPC / (1 + init_action)
                 win_auctions = auc_datas[bids >= auc_datas[:, config['data_marketprice_index']]]
+            else:
                 state = state_
                 action = next_action
+                bids = auc_datas[:, config['data_pctr_index']] * eCPC / (1 + action)
+                win_auctions = auc_datas[bids >= auc_datas[:, config['data_marketprice_index']]]
             e_cost[t] = np.sum(win_auctions[:, config['data_marketprice_index']])
             e_clks[t] = np.sum(win_auctions[:, config['data_clk_index']])
             if np.sum(e_cost) >= budget:
@@ -89,9 +90,9 @@ def run_env(budget, auc_num, budget_para):
             RL.soft_update(RL.Critic, RL.Critic_)
         if episode % 100 == 0:
             print('episode {}, budget-{}, cost-{}, clks-{}\n'.format(episode, budget, np.sum(e_cost), int(np.sum(e_clks))))
-            test_env(config['test_budget'] * budget_para, int(config['test_auc_num']), budget_para)
+            test_env(config['test_budget'] * budget_para, budget_para)
 
-def test_env(budget, auc_num, budget_para):
+def test_env(budget, budget_para):
     test_data = pd.read_csv("../../data/test_data.csv", header=None).drop([0])
     test_data.iloc[:, config['data_clk_index']:config['data_marketprice_index'] + 2] \
         = test_data.iloc[:, config['data_clk_index']:config['data_marketprice_index'] + 2].astype(
@@ -114,15 +115,16 @@ def test_env(budget, auc_num, budget_para):
         auc_datas = test_data[test_data[:, config['data_hour_index']] == t]
 
         if t == 0:
+            state = np.array([1, 0, 0])
+            action = RL.choose_action(state)
+            init_action = action
             bids = auc_datas[:, config['data_pctr_index']] * eCPC / (1 + init_action)
             win_auctions = auc_datas[bids >= auc_datas[:, config['data_marketprice_index']]]
-            state = np.array([1,1, 0])
-            action = RL.choose_action(state)
         else:
-            bids = auc_datas[:, config['data_pctr_index']] * eCPC / (1 + next_action)
-            win_auctions = auc_datas[bids >= auc_datas[:, config['data_marketprice_index']]]
             state = state_
             action = next_action
+            bids = auc_datas[:, config['data_pctr_index']] * eCPC / (1 + action)
+            win_auctions = auc_datas[bids >= auc_datas[:, config['data_marketprice_index']]]
         e_cost[t] = np.sum(win_auctions[:, config['data_marketprice_index']])
         e_clks[t] = np.sum(win_auctions[:, config['data_clk_index']])
         if np.sum(e_cost) >= budget:
@@ -183,4 +185,4 @@ if __name__ == '__main__':
     budget_para = config['budget_para']
     for i in range(len(budget_para)):
         train_budget = config['train_budget'] * budget_para[i]
-        run_env(train_budget, int(config['train_auc_num']), budget_para[i])
+        run_env(train_budget, budget_para[i])
