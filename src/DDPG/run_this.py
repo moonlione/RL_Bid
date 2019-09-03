@@ -35,12 +35,12 @@ def run_env(budget, budget_para):
                 action = RL.choose_action(state)
                 action = action + ou_noise()[0]
                 init_action = action
-                bids = auc_datas[:, config['data_pctr_index']] * eCPC * (1 + init_action)
+                bids = auc_datas[:, config['data_pctr_index']] * eCPC / (1 + init_action)
                 win_auctions = auc_datas[bids >= auc_datas[:, config['data_marketprice_index']]]
             else:
                 state = state_
                 action = next_action
-                bids = auc_datas[:, config['data_pctr_index']] * eCPC * (1 + action)
+                bids = auc_datas[:, config['data_pctr_index']] * eCPC / (1 + action)
                 win_auctions = auc_datas[bids >= auc_datas[:, config['data_marketprice_index']]]
             e_cost[t] = np.sum(win_auctions[:, config['data_marketprice_index']])
             e_clks[t] = np.sum(win_auctions[:, config['data_clk_index']])
@@ -57,7 +57,7 @@ def run_env(budget, budget_para):
                         temp_action = init_action
                     else:
                         temp_action = next_action
-                    bid = current_data[config['data_pctr_index']] * eCPC * (1 + temp_action)
+                    bid = current_data[config['data_pctr_index']] * eCPC / (1 + temp_action)
                     if bid > temp_market_price:
                         e_clks[t] += current_data[config['data_clk_index']]
                         temp_cost += temp_market_price
@@ -119,12 +119,12 @@ def test_env(budget, budget_para):
             state = np.array([1, 0, 0])
             action = RL.choose_action(state)
             init_action = action
-            bids = auc_datas[:, config['data_pctr_index']] * eCPC * (1 + init_action)
+            bids = auc_datas[:, config['data_pctr_index']] * eCPC / (1 + init_action)
             win_auctions = auc_datas[bids >= auc_datas[:, config['data_marketprice_index']]]
         else:
             state = state_
             action = next_action
-            bids = auc_datas[:, config['data_pctr_index']] * eCPC * (1 + action)
+            bids = auc_datas[:, config['data_pctr_index']] * eCPC / (1 + action)
             win_auctions = auc_datas[bids >= auc_datas[:, config['data_marketprice_index']]]
         e_cost[t] = np.sum(win_auctions[:, config['data_marketprice_index']])
         e_clks[t] = np.sum(win_auctions[:, config['data_clk_index']])
@@ -141,7 +141,7 @@ def test_env(budget, budget_para):
                     temp_action = init_action
                 else:
                     temp_action = next_action
-                bid = current_data[config['data_pctr_index']] * eCPC * (1 + temp_action)
+                bid = current_data[config['data_pctr_index']] * eCPC / (1 + temp_action)
                 if bid > temp_market_price:
                     e_clks[t] += current_data[config['data_clk_index']]
                     temp_cost += temp_market_price
