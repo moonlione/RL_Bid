@@ -18,7 +18,7 @@ class Actor(nn.Module):
                      affine=True,
                      track_running_stats=True)
 
-        self.batch_norm_layer = nn.BatchNorm1d(config['batch_size'],
+        self.batch_norm_layer = nn.BatchNorm1d(config['neuron_nums'],
                      eps=1e-05,
                      momentum=0.1,
                      affine=True,
@@ -58,7 +58,7 @@ class Critic(nn.Module):
                                                affine=True,
                                                track_running_stats=True)
 
-        self.batch_norm_layer = nn.BatchNorm1d(config['batch_size'],
+        self.batch_norm_layer = nn.BatchNorm1d(config['neuron_nums'],
                                                eps=1e-05,
                                                momentum=0.1,
                                                affine=True,
@@ -70,7 +70,7 @@ class Critic(nn.Module):
         f_s = F.relu(input)
         action = self.batch_norm_action(action)
         action = self.fc_a(action)
-        action = self.batch_norm_action(action)
+        action = self.batch_norm_layer(action)
         f_a = F.relu(action)
         cat = torch.cat([f_s, f_a], dim=1)
         cat = self.fc_q(cat)

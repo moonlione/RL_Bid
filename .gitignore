@@ -31,3 +31,7 @@ src/__pycache__/
 /src/DDPG/Model/
 /src/DDPG/result/
 /src/DDPG/__pycache__/
+/src/DDPG_BN/Model/
+/src/DDPG_BN/result/
+/src/DDPG_BN/__pycache__/
+
