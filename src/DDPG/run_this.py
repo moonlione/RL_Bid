@@ -157,7 +157,7 @@ def run_env(budget, budget_para):
                                                          'break_time_slot', 'td_error', 'action_loss'])
     e_results_df.to_csv('result/train_epsiode_results_' + str(budget_para) + '.csv')
 
-    test_records_df = pd.DataFrame(data=e_results, columns=['budget', 'cost', 'clks', 'real_clks', 'bids', 'imps', 'cpm',
+    test_records_df = pd.DataFrame(data=test_records, columns=['budget', 'cost', 'clks', 'real_clks', 'bids', 'imps', 'cpm',
                                                          'break_time_slot'])
     test_records_df.to_csv('result/test_epsiode_results_' + str(budget_para) + '.csv')
 
