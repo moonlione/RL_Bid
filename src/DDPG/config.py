@@ -1,9 +1,9 @@
 config = {
     'e_greedy': 0.9,
     'learning_rate_a': 3e-5,
-    'learning_rate_c': 1e-4,
+    'learning_rate_c': 1e-3,
     'reward_decay': 1,
-    'tau': 0.0001,
+    'tau': 0.001,
     'feature_num': 6, # 153,3
     'data_pctr_index': 4, # 0
     'data_hour_index': 3, # 17:train-fm,3

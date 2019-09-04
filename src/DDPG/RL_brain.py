@@ -105,14 +105,14 @@ class DDPG():
         if len(test_results) >= 3:
             for i in range(len(test_results)):
                 if i == 0:
-                    max = test_results[i]
+                    max = test_results[i][2]
                 elif i != len(test_results) - 1:
                     if test_results[i] > test_results[i - 1] and test_results[i] > test_results[i + 1]:
-                        if max < test_results[i]:
-                            max = test_results[i]
+                        if max < test_results[i][2]:
+                            max = test_results[i][2]
                 else:
-                    if test_results[i] > max:
-                        max = test_results[i]
+                    if test_results[i][2] > max:
+                        max = test_results[i][2]
         return max
 
 class OrnsteinUhlenbeckNoise:

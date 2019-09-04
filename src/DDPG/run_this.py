@@ -121,7 +121,7 @@ def run_env(budget, budget_para):
             RL.soft_update(RL.Actor, RL.Actor_)
             RL.soft_update(RL.Critic, RL.Critic_)
         e_result = [budget, np.sum(e_cost), int(np.sum(e_clks)), int(np.sum(real_clks)), np.sum(bid_nums), np.sum(imps),
-                    np.sum(e_cost) / np.sum(imps), break_time_slot, td_error, action_loss]
+                    np.sum(e_cost) / np.sum(imps) if np.sum(imps) > 0 else 0, break_time_slot, td_error, action_loss]
         e_results.append(e_result)
 
         if episode % 100 == 0:
@@ -138,7 +138,7 @@ def run_env(budget, budget_para):
             test_records.append(test_result)
 
             max = RL.para_store_iter(test_records)
-            if max == test_records[len(test_records) - 1:len(test_records)][2]:
+            if max == test_records[len(test_records) - 1:len(test_records)][0][2]:
                 # print('最优参数已存储')
                 results = []
                 results.append(test_result)
@@ -269,7 +269,7 @@ def test_env(budget, budget_para):
     print('budget={}, cost={}, clks={}, real_clks={}, bids={}, imps={}, cpm={}, break_time_slot={}\n'.format(
             budget, np.sum(e_cost), int(np.sum(e_clks)),
             int(np.sum(real_clks)), np.sum(bid_nums), np.sum(imps),
-            np.sum(e_cost) / np.sum(imps)  if np.sum(imps) > 0 else 0, break_time_slot))
+            np.sum(e_cost) / np.sum(imps) if np.sum(imps) > 0 else 0, break_time_slot))
     
     return result
 
