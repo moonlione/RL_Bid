@@ -48,6 +48,7 @@ def run_env(budget, budget_para):
                 # print('早停时段{}'.format(t))
                 temp_cost = 0
                 temp_win_auctions = 0
+                e_clks[t] = 0
                 for i in range(len(auc_datas)):
                     if temp_cost >= (budget - np.sum(e_cost[:t])):
                         break
@@ -113,7 +114,6 @@ def test_env(budget, budget_para):
     e_actions = [0 for i in range(24)]
     init_action = 0
     next_action = 0
-
     actions = []
     state_ = np.array([])
     # 状态包括：当前CTR，
@@ -138,6 +138,7 @@ def test_env(budget, budget_para):
             # print('早停时段{}'.format(t))
             temp_cost = 0
             temp_win_auctions = 0
+            e_clks[t] = 0
             for i in range(len(auc_datas)):
                 if temp_cost >= (budget - np.sum(e_cost[:t])):
                     break
