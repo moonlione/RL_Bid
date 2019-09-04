@@ -37,8 +37,8 @@ class DDPG():
         self.lr_C = lr_C
         self.gamma = reward_decay
         self.memory_size = memory_size
-        self.batch_size = 32
-        self.tau = 0.01
+        self.batch_size = batch_size
+        self.tau = tau
 
         if not hasattr(self, 'memory_counter'):
             self.memory_counter = 0

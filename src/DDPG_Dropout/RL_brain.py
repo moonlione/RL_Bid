@@ -3,7 +3,7 @@ import torch.nn as nn
 import numpy as np
 import os
 import random
-from src.DDPG_BN.Actor_Critic import Actor, Critic
+from src.DDPG_Dropout.Actor_Critic import Actor, Critic
 
 if not os.path.exists('result'):
     os.mkdir('result')
@@ -62,14 +62,21 @@ class DDPG():
         self.memory[index, :] = transition  # 替换
         self.memory_counter += 1
 
-    def choose_action(self, state):
-        self.Actor.eval()
-        self.Actor_.eval()
-        self.Critic.eval()
-        self.Critic_.eval()
-        state = torch.unsqueeze(torch.FloatTensor(state), 0).cuda()
-        action = self.Actor.forward(state).detach().cpu().numpy()[0][0]
-
+    def choose_action(self, state, training):
+        if training:
+            self.Actor.train()
+            self.Actor_.train()
+            self.Critic.train()
+            self.Critic_.train()
+            state = torch.unsqueeze(torch.FloatTensor(state), 0).cuda()
+            action = self.Actor.forward(state).detach().cpu().numpy()[0][0]
+        else:
+            self.Actor.eval()
+            self.Actor_.eval()
+            self.Critic.eval()
+            self.Critic_.eval()
+            state = torch.unsqueeze(torch.FloatTensor(state), 0).cuda()
+            action = self.Actor.forward(state).detach().cpu().numpy()[0][0]
         return action
 
     def soft_update(self, net, net_target):
