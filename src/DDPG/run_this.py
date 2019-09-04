@@ -25,6 +25,7 @@ def run_env(budget, budget_para):
     eCPC = 50000  # 每次点击花费
 
     e_results = []
+    test_records = []
     for episode in range(config['train_episodes']):
         e_clks = [0 for i in range(24)] # episode各个时段所获得的点击数，以下类推
         e_cost = [0 for i in range(24)]
@@ -120,7 +121,7 @@ def run_env(budget, budget_para):
             RL.soft_update(RL.Actor, RL.Actor_)
             RL.soft_update(RL.Critic, RL.Critic_)
         e_result = [budget, np.sum(e_cost), int(np.sum(e_clks)), int(np.sum(real_clks)), np.sum(bid_nums), np.sum(imps),
-                    np.sum(e_cost) / np.sum(imps), break_time_slot]
+                    np.sum(e_cost) / np.sum(imps), break_time_slot, td_error, action_loss]
         e_results.append(e_result)
 
         if episode % 100 == 0:
@@ -132,11 +133,27 @@ def run_env(budget, budget_para):
             hour_clks_df.to_csv('result/train_hour_clks_' + str(budget_para) + '.csv')
             print('episode {}, budget={}, cost={}, clks={}, real_clks={}, bids={}, imps={}, cpm={}, td_error={}, action_loss={}\n'.format(episode, budget, np.sum(e_cost), int(np.sum(e_clks)),
                                                           int(np.sum(real_clks)), np.sum(bid_nums), np.sum(imps),
-                                                          np.sum(e_cost) / np.sum(imps), break_time_slot, td_error, action_loss))
+                                                          np.sum(e_cost) / np.sum(imps) if np.sum(imps) > 0 else 0, break_time_slot, td_error, action_loss))
             test_result = test_env(config['test_budget'] * budget_para, budget_para)
+            test_records.append(test_result)
+
+            max = RL.para_store_iter(test_records)
+            if max == test_records[len(test_records) - 1:len(test_records)][2]:
+                # print('最优参数已存储')
+                results = []
+                results.append(test_result)
+                result_df = pd.DataFrame(data=results,
+                                         columns=['budget', 'cost', 'clks', 'real_clks', 'bids', 'imps', 'cpm',
+                                                  'break_time_slot'])
+                result_df.to_csv('result/test_result_' + str(budget_para) + '.csv')
+
     e_results_df = pd.DataFrame(data=e_results, columns=['budget', 'cost', 'clks', 'real_clks', 'bids', 'imps', 'cpm',
-                                                         'break_time_slot'])
+                                                         'break_time_slot', 'td_error', 'action_loss'])
     e_results_df.to_csv('result/train_epsiode_results_' + str(budget_para) + '.csv')
+
+    test_records_df = pd.DataFrame(data=e_results, columns=['budget', 'cost', 'clks', 'real_clks', 'bids', 'imps', 'cpm',
+                                                         'break_time_slot'])
+    test_records_df.to_csv('result/test_epsiode_results_' + str(budget_para) + '.csv')
 
 def test_env(budget, budget_para):
     test_data = pd.read_csv("../../data/test_data.csv", header=None).drop([0])
@@ -244,10 +261,6 @@ def test_env(budget, budget_para):
 
     result = [budget, np.sum(e_cost), int(np.sum(e_clks)), int(np.sum(real_clks)), np.sum(bid_nums), np.sum(imps),
                 np.sum(e_cost) / np.sum(imps), break_time_slot]
-    results.append(result)
-    result_df = pd.DataFrame(data=results, columns=['budget', 'cost', 'clks', 'real_clks', 'bids', 'imps', 'cpm',
-                                                       'break_time_slot'])
-    result_df.to_csv('result/test_result_' + str(budget_para) + '.csv')
 
     hour_clks = {'clks': e_clks, 'no_bid_clks': np.subtract(real_hour_clks, e_clks).tolist(),
                  'real_clks': real_hour_clks}
@@ -256,7 +269,7 @@ def test_env(budget, budget_para):
     print('budget={}, cost={}, clks={}, real_clks={}, bids={}, imps={}, cpm={}, break_time_slot={}\n'.format(
             budget, np.sum(e_cost), int(np.sum(e_clks)),
             int(np.sum(real_clks)), np.sum(bid_nums), np.sum(imps),
-            np.sum(e_cost) / np.sum(imps), break_time_slot))
+            np.sum(e_cost) / np.sum(imps)  if np.sum(imps) > 0 else 0, break_time_slot))
     
     return result
 
