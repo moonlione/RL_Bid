@@ -45,7 +45,7 @@ def run_env(budget, budget_para):
             auc_datas = train_data[train_data[:, config['data_hour_index']] == t]
             if t == 0:
                 state = np.array([(t + 1) / 24, 1, 0, 0, 0, 0]) # current_time_slot, budget_left_ratio, cost_t_ratio, budget_spent_speed, ctr_t, win_rate_t
-                action = RL.choose_action(state, True)
+                action = RL.choose_action(state)
                 action = action + ou_noise()[0]
                 init_action = action
                 bids = auc_datas[:, config['data_pctr_index']] * eCPC / (1 + init_action)
@@ -102,7 +102,7 @@ def run_env(budget, budget_para):
             else:
                 budget_spent_speed = (e_cost[t] - e_cost[t-1]) / e_cost[t-1] if e_cost[t-1] > 0 else 1
                 state_ = np.array([next_time_slot, budget_left_ratio, cost_t_ratio, budget_spent_speed, ctr_t, win_rate_t])
-            action_ = RL.choose_action(state_, True)
+            action_ = RL.choose_action(state_)
             action_ = action_ + ou_noise()[0]
             next_action = action_
             if t == 0:
@@ -197,7 +197,7 @@ def test_env(budget, budget_para):
         if t == 0:
             state = np.array([(t + 1) / 24, 1, 0, 0, 0,
                               0])  # current_time_slot, budget_left_ratio, cost_t_ratio, budget_spent_speed, ctr_t, win_rate_t
-            action = RL.choose_action(state, False)
+            action = RL.choose_action(state)
             init_action = action
             bids = auc_datas[:, config['data_pctr_index']] * eCPC / (1 + init_action)
             win_auctions = auc_datas[bids >= auc_datas[:, config['data_marketprice_index']]]
@@ -253,7 +253,7 @@ def test_env(budget, budget_para):
         else:
             budget_spent_speed = (e_cost[t] - e_cost[t - 1]) / e_cost[t - 1] if e_cost[t - 1] > 0 else 1
             state_ = np.array([next_time_slot, budget_left_ratio, cost_t_ratio, budget_spent_speed, ctr_t, win_rate_t])
-        action_ = RL.choose_action(state_, False)
+        action_ = RL.choose_action(state_)
         next_action = action_
         if t == 0:
             actions[0] = init_action
