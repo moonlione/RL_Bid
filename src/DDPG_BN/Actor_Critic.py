@@ -58,7 +58,7 @@ class Critic(nn.Module):
                                                track_running_stats=True)
 
     def forward(self, input, action):
-        xs = F.relu(self.fc1(self.batch_norm_input(input)))
+        xs = F.relu(self.fc_s(self.batch_norm_input(input)))
         x = torch.cat([self.batch_norm_layer(xs), self.fc_a(action)], dim=1)
         q = F.relu(self.batch_norm_layer(self.fc_q(x)))
         q = self.fc_(q)
