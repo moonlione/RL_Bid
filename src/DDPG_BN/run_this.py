@@ -23,7 +23,9 @@ def run_env(budget, budget_para):
     ou_noise = OrnsteinUhlenbeckNoise(mu=np.zeros(1))
     td_error, action_loss = 0,0
     eCPC = 50000  # 每次点击花费
-
+    
+    epsilon = 1e-5
+    
     e_results = []
     test_records = []
     for episode in range(config['train_episodes']):
@@ -48,12 +50,12 @@ def run_env(budget, budget_para):
                 action = RL.choose_action(state)
                 action = action + ou_noise()[0]
                 init_action = action
-                bids = auc_datas[:, config['data_pctr_index']] * eCPC / (1 + init_action)
+                bids = auc_datas[:, config['data_pctr_index']] * eCPC / (1 + epsilon + init_action)
                 win_auctions = auc_datas[bids >= auc_datas[:, config['data_marketprice_index']]]
             else:
                 state = state_
                 action = next_action
-                bids = auc_datas[:, config['data_pctr_index']] * eCPC / (1 + action)
+                bids = auc_datas[:, config['data_pctr_index']] * eCPC / (1 + epsilon + action)
                 win_auctions = auc_datas[bids >= auc_datas[:, config['data_marketprice_index']]]
             e_cost[t] = np.sum(win_auctions[:, config['data_marketprice_index']])
             e_clks[t] = np.sum(win_auctions[:, config['data_clk_index']], dtype=int)
@@ -79,7 +81,7 @@ def run_env(budget, budget_para):
                         temp_action = init_action
                     else:
                         temp_action = next_action
-                    bid = current_data[config['data_pctr_index']] * eCPC / (1 + temp_action)
+                    bid = current_data[config['data_pctr_index']] * eCPC / (1 + epsilon + temp_action)
                     real_clks[t] += int(current_data[config['data_clk_index']])
                     bid_nums[t] += 1
                     if bid > temp_market_price:
@@ -177,7 +179,7 @@ def test_env(budget, budget_para):
             np.sum(test_data[test_data[:, config['data_hour_index']] == i][:, config['data_clk_index']]))
 
     eCPC = 50000  # 每次点击花费
-
+    epsilon = 1e-5
     e_clks = [0 for i in range(24)]  # episode各个时段所获得的点击数，以下类推
     e_cost = [0 for i in range(24)]
     init_action = 0
@@ -199,12 +201,12 @@ def test_env(budget, budget_para):
                               0])  # current_time_slot, budget_left_ratio, cost_t_ratio, budget_spent_speed, ctr_t, win_rate_t
             action = RL.choose_action(state)
             init_action = action
-            bids = auc_datas[:, config['data_pctr_index']] * eCPC / (1 + init_action)
+            bids = auc_datas[:, config['data_pctr_index']] * eCPC / (1 + epsilon + init_action)
             win_auctions = auc_datas[bids >= auc_datas[:, config['data_marketprice_index']]]
         else:
             state = state_
             action = next_action
-            bids = auc_datas[:, config['data_pctr_index']] * eCPC / (1 + action)
+            bids = auc_datas[:, config['data_pctr_index']] * eCPC / (1 + epsilon + action)
             win_auctions = auc_datas[bids >= auc_datas[:, config['data_marketprice_index']]]
         e_cost[t] = np.sum(win_auctions[:, config['data_marketprice_index']])
         e_clks[t] = np.sum(win_auctions[:, config['data_clk_index']], dtype=int)
@@ -229,7 +231,7 @@ def test_env(budget, budget_para):
                     temp_action = init_action
                 else:
                     temp_action = next_action
-                bid = current_data[config['data_pctr_index']] * eCPC / (1 + temp_action)
+                bid = current_data[config['data_pctr_index']] * eCPC / (1 + epsilon + temp_action)
                 real_clks[t] += int(current_data[config['data_clk_index']])
                 bid_nums[t] += 1
                 if bid > temp_market_price:
