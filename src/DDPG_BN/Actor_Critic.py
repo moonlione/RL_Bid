@@ -24,10 +24,16 @@ class Actor(nn.Module):
                      affine=True,
                      track_running_stats=True)
 
+        self.batch_norm_action = nn.BatchNorm1d(action_numbers,
+                     eps=1e-05,
+                     momentum=0.1,
+                     affine=True,
+                     track_running_stats=True)
+
     def forward(self, input):
         x = F.relu(self.batch_norm_layer(self.fc1(self.batch_norm_input(input))))
         x_ = F.relu(self.batch_norm_layer(self.fc2(x)))
-        out = torch.tanh(self.batch_norm_layer(self.out(x_)))
+        out = torch.tanh(self.batch_norm_action(self.out(x_)))
 
         return out
 
@@ -45,7 +51,7 @@ class Critic(nn.Module):
                                                affine=True,
                                                track_running_stats=True)
 
-        self.batch_norm_layer_ = nn.BatchNorm1d(neural_nums,
+        self.batch_norm_layer = nn.BatchNorm1d(neural_nums,
                                                eps=1e-05,
                                                momentum=0.1,
                                                affine=True,
@@ -54,7 +60,7 @@ class Critic(nn.Module):
     def forward(self, input, action):
         xs = F.relu(self.fc1(self.batch_norm_input(input)))
         x = torch.cat([self.batch_norm_layer(xs), self.fc_a(action)], dim=1)
-        q = F.relu(self.batch_norm_layer_(self.fc_q(x)))
+        q = F.relu(self.batch_norm_layer(self.fc_q(x)))
         q = self.fc_(q)
 
         return q
