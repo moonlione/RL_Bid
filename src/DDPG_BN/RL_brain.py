@@ -63,12 +63,11 @@ class DDPG():
         self.memory_counter += 1
 
     def choose_action(self, state):
-        self.Actor.eval()
-        self.Actor_.eval()
-        self.Critic.eval()
-        self.Critic_.eval()
         state = torch.unsqueeze(torch.FloatTensor(state), 0).cuda()
-        action = self.Actor.forward(state).detach().cpu().numpy()[0][0]
+        self.Actor.eval()
+        with torch.no_grad():
+            action = self.Actor.forward(state).cpu().numpy()[0][0]
+        self.Actor.train()
 
         return action
 
