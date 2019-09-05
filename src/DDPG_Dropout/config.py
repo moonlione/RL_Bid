@@ -1,6 +1,6 @@
 config = {
     'e_greedy': 0.9,
-    'learning_rate_a': 3e-5,
+    'learning_rate_a': 1e-4,
     'learning_rate_c': 1e-3,
     'reward_decay': 1,
     'tau': 0.001,
