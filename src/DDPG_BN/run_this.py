@@ -3,6 +3,7 @@ from src.DDPG_BN.config import config
 from src.DDPG_BN.RL_brain import OrnsteinUhlenbeckNoise
 import pandas as pd
 import numpy as np
+import datetime
 
 def run_env(budget, budget_para):
     # 训练
@@ -113,18 +114,20 @@ def run_env(budget, budget_para):
 
             transition = np.hstack((state.tolist(), action, reward, state_.tolist()))
             RL.store_transition(transition)
+
+            if RL.memory_counter >= config['batch_size']:
+                td_e, a_loss = RL.learn()
+                td_error, action_loss = td_e, a_loss
+                RL.soft_update(RL.Actor, RL.Actor_)
+                RL.soft_update(RL.Critic, RL.Critic_)
             if np.sum(e_cost) >= budget:
                 break
-        if RL.memory_counter >= config['batch_size']:
-            td_e, a_loss = RL.learn()
-            td_error, action_loss = td_e, a_loss
-            RL.soft_update(RL.Actor, RL.Actor_)
-            RL.soft_update(RL.Critic, RL.Critic_)
+
         e_result = [budget, np.sum(e_cost), int(np.sum(e_clks)), int(np.sum(real_clks)), np.sum(bid_nums), np.sum(imps),
                     np.sum(e_cost) / np.sum(imps) if np.sum(imps) > 0 else 0, break_time_slot, td_error, action_loss]
         e_results.append(e_result)
 
-        if episode % 100 == 0:
+        if (episode > 0) and (episode % 100 == 0):
             actions_df = pd.DataFrame(data=actions)
             actions_df.to_csv('result/train_actions_' + str(budget_para) + '.csv')
 
@@ -145,13 +148,13 @@ def run_env(budget, budget_para):
                 result_df = pd.DataFrame(data=results,
                                          columns=['budget', 'cost', 'clks', 'real_clks', 'bids', 'imps', 'cpm',
                                                   'break_time_slot'])
-                result_df.to_csv('result/test_result_' + str(budget_para) + '.csv')
+                result_df.to_csv('result/best_test_result_' + str(budget_para) + '.csv')
 
                 test_actions_df = pd.DataFrame(data=test_actions)
-                test_actions_df.to_csv('result/test_action_' + str(budget_para) + '.csv')
+                test_actions_df.to_csv('result/best_test_action_' + str(budget_para) + '.csv')
 
                 test_hour_clks_df = pd.DataFrame(data=test_hour_clks)
-                test_hour_clks_df.to_csv('result/test_hour_clks_' + str(budget_para) + '.csv')
+                test_hour_clks_df.to_csv('result/best_test_hour_clks_' + str(budget_para) + '.csv')
 
     e_results_df = pd.DataFrame(data=e_results, columns=['budget', 'cost', 'clks', 'real_clks', 'bids', 'imps', 'cpm',
                                                          'break_time_slot', 'td_error', 'action_loss'])
@@ -267,10 +270,22 @@ def test_env(budget, budget_para):
                 np.sum(e_cost) / np.sum(imps), break_time_slot]
     hour_clks = {'clks': e_clks, 'no_bid_clks': np.subtract(real_hour_clks, e_clks).tolist(),
                  'real_clks': real_hour_clks}
-    print('budget={}, cost={}, clks={}, real_clks={}, bids={}, imps={}, cpm={}, break_time_slot={}\n'.format(
+
+    results.append(result)
+    result_df = pd.DataFrame(data=results,
+                             columns=['budget', 'cost', 'clks', 'real_clks', 'bids', 'imps', 'cpm',
+                                      'break_time_slot'])
+    result_df.to_csv('result/test_result_' + str(budget_para) + '.csv')
+
+    test_actions_df = pd.DataFrame(data=actions)
+    test_actions_df.to_csv('result/test_action_' + str(budget_para) + '.csv')
+
+    test_hour_clks_df = pd.DataFrame(data=hour_clks)
+    test_hour_clks_df.to_csv('result/test_hour_clks_' + str(budget_para) + '.csv')
+    print('budget={}, cost={}, clks={}, real_clks={}, bids={}, imps={}, cpm={}, break_time_slot={}, {}\n'.format(
             budget, np.sum(e_cost), int(np.sum(e_clks)),
             int(np.sum(real_clks)), np.sum(bid_nums), np.sum(imps),
-            np.sum(e_cost) / np.sum(imps) if np.sum(imps) > 0 else 0, break_time_slot))
+            np.sum(e_cost) / np.sum(imps) if np.sum(imps) > 0 else 0, break_time_slot, datetime.datetime.now()))
     
     return result, actions, hour_clks
 

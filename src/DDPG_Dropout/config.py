@@ -3,7 +3,7 @@ config = {
     'learning_rate_a': 1e-4,
     'learning_rate_c': 1e-3,
     'reward_decay': 1,
-    'tau': 0.001,
+    'tau': 0.005,
     'feature_num': 6, # 153,3
     'data_pctr_index': 4, # 0
     'data_hour_index': 3, # 17:train-fm,3

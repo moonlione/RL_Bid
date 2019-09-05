@@ -64,7 +64,8 @@ class DDPG():
 
     def choose_action(self, state):
         state = torch.unsqueeze(torch.FloatTensor(state), 0).cuda()
-        action = self.Actor.forward(state).detach().cpu().numpy()[0][0]
+        with torch.no_grad():
+            action = self.Actor.forward(state).cpu().numpy()[0][0]
         return action
 
     def soft_update(self, net, net_target):
@@ -109,7 +110,7 @@ class DDPG():
                 if i == 0:
                     max = test_results[i][2]
                 elif i != len(test_results) - 1:
-                    if test_results[i] > test_results[i - 1] and test_results[i] > test_results[i + 1]:
+                    if test_results[i][2] > test_results[i - 1][2] and test_results[i][2] > test_results[i + 1][2]:
                         if max < test_results[i][2]:
                             max = test_results[i][2]
                 else:

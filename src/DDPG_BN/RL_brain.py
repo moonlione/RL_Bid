@@ -113,7 +113,7 @@ class DDPG():
                 if i == 0:
                     max = test_results[i][2]
                 elif i != len(test_results) - 1:
-                    if test_results[i] > test_results[i - 1] and test_results[i] > test_results[i + 1]:
+                    if test_results[i][2] > test_results[i - 1][2] and test_results[i][2] > test_results[i + 1][2]:
                         if max < test_results[i][2]:
                             max = test_results[i][2]
                 else:
