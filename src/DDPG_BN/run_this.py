@@ -90,7 +90,7 @@ def run_env(budget, budget_para):
                         temp_win_auctions += 1
                 e_cost[t] = temp_cost
                 ctr_t = e_clks[t] / temp_win_auctions if temp_win_auctions > 0 else 0
-                win_rate_t = temp_win_auctions / len(auc_datas)
+                win_rate_t = temp_win_auctions / bid_nums[t]
             else:
                 ctr_t = np.sum(win_auctions[:, config['data_clk_index']]) / len(win_auctions) if len(win_auctions) > 0 else 0
                 win_rate_t = len(win_auctions) / len(auc_datas)
@@ -242,7 +242,7 @@ def test_env(budget, budget_para):
                     temp_win_auctions += 1
             e_cost[t] = temp_cost
             ctr_t = e_clks[t] / temp_win_auctions if temp_win_auctions > 0 else 0
-            win_rate_t = temp_win_auctions / len(auc_datas)
+            win_rate_t = temp_win_auctions / bid_nums[t]
         else:
             ctr_t = np.sum(win_auctions[:, config['data_clk_index']]) / len(win_auctions) if len(
                 win_auctions) > 0 else 0
@@ -286,7 +286,7 @@ def test_env(budget, budget_para):
             budget, np.sum(e_cost), int(np.sum(e_clks)),
             int(np.sum(real_clks)), np.sum(bid_nums), np.sum(imps),
             np.sum(e_cost) / np.sum(imps) if np.sum(imps) > 0 else 0, break_time_slot, datetime.datetime.now()))
-    
+
     return result, actions, hour_clks
 
 if __name__ == '__main__':

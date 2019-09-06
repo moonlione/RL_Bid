@@ -9,6 +9,8 @@ if not os.path.exists('result'):
     os.mkdir('result')
 elif not os.path.exists('Model'):
     os.mkdir('Model')
+elif not os.path.exists('result_profit'):
+    os.mkdir('result_profit')
 
 def setup_seed(seed):
     torch.manual_seed(seed)
@@ -103,6 +105,7 @@ class DDPG():
 
         td_error_r = td_error.detach().cpu().numpy()
         a_loss_r = a_loss.detach().cpu().numpy()
+        # print(td_error_r, a_loss_r)
         return td_error_r, a_loss_r
 
     # 只存储获得最优收益（点击）那一轮的参数
