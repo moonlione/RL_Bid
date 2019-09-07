@@ -341,7 +341,7 @@ def test_env(budget, auc_num, budget_para):
 if __name__ == '__main__':
     env = AD_env()
     RL = DDPG(
-        feature_nums=config['feature_num'],
+        feature_nums=3,
         action_nums=1,
         lr_A=config['learning_rate_a'],
         lr_C=config['learning_rate_c'],
@@ -350,8 +350,6 @@ if __name__ == '__main__':
         batch_size=config['batch_size'],
         tau=config['tau'],  # for target network soft update
     )
-
-
     budget_para = config['budget_para']
     for i in range(len(budget_para)):
         train_budget = config['train_budget'] * budget_para[i]

@@ -135,7 +135,7 @@ def run_env(budget, budget_para):
                 actions[0] = init_action
             else:
                 actions[t] = action_
-            reward = e_profits[t] - e_waste_budget[t] - e_miss_clks_profits[t]
+            reward = (e_profits[t] - e_waste_budget[t] - e_miss_clks_profits[t]) / 1e4
             transition = np.hstack((state.tolist(), action, reward, state_.tolist()))
             RL.store_transition(transition)
 
