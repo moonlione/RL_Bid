@@ -33,6 +33,7 @@ def run_env(budget, budget_para):
         e_clks = [0 for i in range(24)]  # episode各个时段所获得的点击数，以下类推
         e_profits = [0 for i in range(24)]
         e_waste_budget = [0 for i in range(24)] # 各个时段浪费在没有点击的曝光上的预算
+        e_miss_clks_profits = [0 for i in range(24)]
         e_cost = [0 for i in range(24)]
         actions = [0 for i in range(24)]
         init_action = 0
@@ -55,16 +56,20 @@ def run_env(budget, budget_para):
                 init_action = action
                 bids = auc_datas[:, config['data_pctr_index']] * eCPC / (1 + init_action)
                 bids = np.where(bids >= 300, 300, bids)
-                win_auctions = auc_datas[bids >= auc_datas[:, config['data_marketprice_index']]]
             else:
                 state = state_
                 action = next_action
                 bids = auc_datas[:, config['data_pctr_index']] * eCPC / (1 + action)
                 bids = np.where(bids >= 300, 300, bids)
-                win_auctions = auc_datas[bids >= auc_datas[:, config['data_marketprice_index']]]
+            win_auctions = auc_datas[bids >= auc_datas[:, config['data_marketprice_index']]]
+            no_win_auctions = auc_datas[bids <= auc_datas[:, config['data_marketprice_index']]]
             e_cost[t] = np.sum(win_auctions[:, config['data_marketprice_index']])
             e_profits[t] = np.sum(bids[bids >= auc_datas[:, config['data_marketprice_index']]] - win_auctions[:, config[
                                                                                                                      'data_marketprice_index']])
+            e_waste_budget[t] = np.sum(win_auctions[win_auctions[:, config['data_clk_index']] == 0][:, config['data_marketprice_index']])
+            with_clk_no_win_auctions = no_win_auctions[no_win_auctions[:, config['data_clk_index']] == 1]
+            e_miss_clks_profits[t] = np.sum(with_clk_no_win_auctions[:, config['data_pctr_index']] * eCPC - with_clk_no_win_auctions[:, config['data_marketprice_index']])
+
             e_clks[t] = np.sum(win_auctions[:, config['data_clk_index']], dtype=int)
             imps[t] = len(win_auctions)
             real_clks[t] = np.sum(auc_datas[:, config['data_clk_index']], dtype=int)
@@ -77,6 +82,8 @@ def run_env(budget, budget_para):
                 temp_win_auctions = 0
                 e_clks[t] = 0
                 e_profits[t] = 0
+                e_waste_budget[t] = 0
+                e_miss_clks_profits[t] = 0
                 real_clks[t] = 0
                 imps[t] = 0
                 bid_nums[t] = 0
@@ -95,11 +102,16 @@ def run_env(budget, budget_para):
                     bid_nums[t] += 1
 
                     if bid > temp_market_price:
+                        if int(current_data[config['data_clk_index']]) == 0:
+                            e_waste_budget[t] += temp_market_price
                         e_profits[t] += (bid - temp_market_price)
                         e_clks[t] += int(current_data[config['data_clk_index']])
                         imps[t] += 1
                         temp_cost += temp_market_price
                         temp_win_auctions += 1
+                    else:
+                        if int(current_data[config['data_clk_index']]) == 1:
+                            e_miss_clks_profits[t] += (current_data[config['data_pctr_index']] * eCPC - temp_market_price)
                 e_cost[t] = temp_cost
                 ctr_t = e_clks[t] / temp_win_auctions if temp_win_auctions > 0 else 0
                 win_rate_t = temp_win_auctions / bid_nums[t]
@@ -123,7 +135,7 @@ def run_env(budget, budget_para):
                 actions[0] = init_action
             else:
                 actions[t] = action_
-            reward = e_profits[t] / 1e5
+            reward = e_profits[t] - e_waste_budget[t] - e_miss_clks_profits[t]
             transition = np.hstack((state.tolist(), action, reward, state_.tolist()))
             RL.store_transition(transition)
 
