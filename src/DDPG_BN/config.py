@@ -4,7 +4,7 @@ config = {
     'learning_rate_c': 1e-4,
     'reward_decay': 1,
     'tau': 0.001,
-    'feature_num': 5, # 153,3
+    'feature_num': 3, # 153,3
     'data_pctr_index': 4, # 0
     'data_hour_index': 3, # 17:train-fm,3
     'data_clk_index': 1, # 15:train-fm,1

@@ -105,7 +105,6 @@ class DDPG():
 
         td_error_r = td_error.detach().cpu().numpy()
         a_loss_r = a_loss.detach().cpu().numpy()
-        # print(td_error_r, a_loss_r)
         return td_error_r, a_loss_r
 
     # 只存储获得最优收益（点击）那一轮的参数
@@ -114,14 +113,14 @@ class DDPG():
         if len(test_results) >= 1:
             for i in range(len(test_results)):
                 if i == 0:
-                    max = test_results[i][2]
+                    max = test_results[i][3]
                 elif i != len(test_results) - 1:
-                    if test_results[i][2] > test_results[i - 1][2] and test_results[i][2] > test_results[i + 1][2]:
-                        if max < test_results[i][2]:
-                            max = test_results[i][2]
+                    if test_results[i][3] > test_results[i - 1][3] and test_results[i][3] > test_results[i + 1][3]:
+                        if max < test_results[i][3]:
+                            max = test_results[i][3]
                 else:
-                    if test_results[i][2] > max:
-                        max = test_results[i][2]
+                    if test_results[i][3] > max:
+                        max = test_results[i][3]
         return max
 
 class OrnsteinUhlenbeckNoise:

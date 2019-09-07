@@ -32,6 +32,7 @@ def run_env(budget, budget_para):
     for episode in range(config['train_episodes']):
         e_clks = [0 for i in range(24)]  # episode各个时段所获得的点击数，以下类推
         e_profits = [0 for i in range(24)]
+        e_waste_budget = [0 for i in range(24)] # 各个时段浪费在没有点击的曝光上的预算
         e_cost = [0 for i in range(24)]
         actions = [0 for i in range(24)]
         init_action = 0
@@ -53,14 +54,17 @@ def run_env(budget, budget_para):
                 action = np.clip(action + ou_noise()[0], -0.99, 0.99)
                 init_action = action
                 bids = auc_datas[:, config['data_pctr_index']] * eCPC / (1 + init_action)
+                bids = np.where(bids >= 300, 300, bids)
                 win_auctions = auc_datas[bids >= auc_datas[:, config['data_marketprice_index']]]
             else:
                 state = state_
                 action = next_action
                 bids = auc_datas[:, config['data_pctr_index']] * eCPC / (1 + action)
+                bids = np.where(bids >= 300, 300, bids)
                 win_auctions = auc_datas[bids >= auc_datas[:, config['data_marketprice_index']]]
             e_cost[t] = np.sum(win_auctions[:, config['data_marketprice_index']])
-            e_profits[t] = np.sum(bids - auc_datas[:, config['data_marketprice_index']])
+            e_profits[t] = np.sum(bids[bids >= auc_datas[:, config['data_marketprice_index']]] - win_auctions[:, config[
+                                                                                                                     'data_marketprice_index']])
             e_clks[t] = np.sum(win_auctions[:, config['data_clk_index']], dtype=int)
             imps[t] = len(win_auctions)
             real_clks[t] = np.sum(auc_datas[:, config['data_clk_index']], dtype=int)
@@ -86,11 +90,12 @@ def run_env(budget, budget_para):
                     else:
                         temp_action = next_action
                     bid = current_data[config['data_pctr_index']] * eCPC / (1 + temp_action)
+                    bid = bid if bid <= 300 else 300
                     real_clks[t] += int(current_data[config['data_clk_index']])
                     bid_nums[t] += 1
 
-                    e_profits[t] += (bid - temp_market_price)
                     if bid > temp_market_price:
+                        e_profits[t] += (bid - temp_market_price)
                         e_clks[t] += int(current_data[config['data_clk_index']])
                         imps[t] += 1
                         temp_cost += temp_market_price
@@ -118,7 +123,7 @@ def run_env(budget, budget_para):
                 actions[0] = init_action
             else:
                 actions[t] = action_
-            reward = e_profits[t] / 1e4
+            reward = e_profits[t] / 1e5
             transition = np.hstack((state.tolist(), action, reward, state_.tolist()))
             RL.store_transition(transition)
 
@@ -143,7 +148,7 @@ def run_env(budget, budget_para):
             hour_clks_df = pd.DataFrame(data=hour_clks)
             hour_clks_df.to_csv('result_profit/train_hour_clks_' + str(budget_para) + '.csv')
             print(
-                'episode {}, profits={}, budget={}, cost={}, clks={}, real_clks={}, bids={}, imps={}, cpm={}, td_error={}, action_loss={}\n'.format(
+                'episode {}, profits={}, budget={}, cost={}, clks={}, real_clks={}, bids={}, imps={}, cpm={}, break_time_slot={}, td_error={}, action_loss={}\n'.format(
                     episode, np.sum(e_profits), budget, np.sum(e_cost), int(np.sum(e_clks)),
                     int(np.sum(real_clks)), np.sum(bid_nums), np.sum(imps),
                     np.sum(e_cost) / np.sum(imps) if np.sum(imps) > 0 else 0, break_time_slot, td_error, action_loss))
@@ -151,7 +156,7 @@ def run_env(budget, budget_para):
             test_records.append(test_result)
 
             max = RL.para_store_iter(test_records)
-            if max == test_records[len(test_records) - 1:len(test_records)][0][2]:
+            if max == test_records[len(test_records) - 1:len(test_records)][0][3]:
                 # print('最优参数已存储')
                 results = []
                 results.append(test_result)
@@ -215,15 +220,17 @@ def test_env(budget, budget_para):
             action = np.clip(action, -0.99, 0.99)
             init_action = action
             bids = auc_datas[:, config['data_pctr_index']] * eCPC / (1 + init_action)
+            bids = np.where(bids >= 300, 300, bids)
             win_auctions = auc_datas[bids >= auc_datas[:, config['data_marketprice_index']]]
         else:
             state = state_
             action = next_action
             bids = auc_datas[:, config['data_pctr_index']] * eCPC / (1 + action)
+            bids = np.where(bids >= 300, 300, bids)
             win_auctions = auc_datas[bids >= auc_datas[:, config['data_marketprice_index']]]
         e_cost[t] = np.sum(win_auctions[:, config['data_marketprice_index']])
         e_clks[t] = np.sum(win_auctions[:, config['data_clk_index']], dtype=int)
-        e_profits[t] = np.sum(bids - auc_datas[:, config['data_marketprice_index']])
+        e_profits[t] = np.sum(bids[bids >= auc_datas[:, config['data_marketprice_index']]] - win_auctions[:, config['data_marketprice_index']])
         imps[t] = len(win_auctions)
         real_clks[t] = np.sum(auc_datas[:, config['data_clk_index']], dtype=int)
         bid_nums[t] = len(auc_datas)
@@ -247,10 +254,11 @@ def test_env(budget, budget_para):
                 else:
                     temp_action = next_action
                 bid = current_data[config['data_pctr_index']] * eCPC / (1 + temp_action)
+                bid = bid if bid <= 300 else 300
                 real_clks[t] += int(current_data[config['data_clk_index']])
                 bid_nums[t] += 1
-                e_profits[t] += (bid - temp_market_price)
                 if bid > temp_market_price:
+                    e_profits[t] += (bid - temp_market_price)
                     e_clks[t] += int(current_data[config['data_clk_index']])
                     imps[t] += 1
                     temp_cost += temp_market_price
