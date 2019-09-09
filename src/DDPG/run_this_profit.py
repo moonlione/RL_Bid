@@ -1,6 +1,6 @@
-from src.DDPG_BN.RL_brain import DDPG
-from src.DDPG_BN.config import config
-from src.DDPG_BN.RL_brain import OrnsteinUhlenbeckNoise
+from src.DDPG.RL_brain import DDPG
+from src.DDPG.config import config
+from src.DDPG.RL_brain import OrnsteinUhlenbeckNoise
 import pandas as pd
 import numpy as np
 import datetime
@@ -64,7 +64,8 @@ def run_env(budget, budget_para):
             win_auctions = auc_datas[bids >= auc_datas[:, config['data_marketprice_index']]]
             no_win_auctions = auc_datas[bids <= auc_datas[:, config['data_marketprice_index']]]
             e_cost[t] = np.sum(win_auctions[:, config['data_marketprice_index']])
-            e_profits[t] = np.sum(win_auctions[:, config['data_pctr_index']] * eCPC - win_auctions[:, config['data_marketprice_index']])
+            e_profits[t] = np.sum(bids[bids >= auc_datas[:, config['data_marketprice_index']]] - win_auctions[:, config[
+                                                                                                                     'data_marketprice_index']])
             e_waste_budget[t] = np.sum(win_auctions[win_auctions[:, config['data_clk_index']] == 0][:, config['data_marketprice_index']])
             with_clk_no_win_auctions = no_win_auctions[no_win_auctions[:, config['data_clk_index']] == 1]
             e_miss_clks_profits[t] = np.sum(with_clk_no_win_auctions[:, config['data_pctr_index']] * eCPC - with_clk_no_win_auctions[:, config['data_marketprice_index']])
@@ -103,7 +104,7 @@ def run_env(budget, budget_para):
                     if bid > temp_market_price:
                         if int(current_data[config['data_clk_index']]) == 0:
                             e_waste_budget[t] += temp_market_price
-                        e_profits[t] += (current_data[config['data_pctr_index']] * eCPC - temp_market_price)
+                        e_profits[t] += (bid - temp_market_price)
                         e_clks[t] += int(current_data[config['data_clk_index']])
                         imps[t] += 1
                         temp_cost += temp_market_price
@@ -241,7 +242,7 @@ def test_env(budget, budget_para):
             win_auctions = auc_datas[bids >= auc_datas[:, config['data_marketprice_index']]]
         e_cost[t] = np.sum(win_auctions[:, config['data_marketprice_index']])
         e_clks[t] = np.sum(win_auctions[:, config['data_clk_index']], dtype=int)
-        e_profits[t] = np.sum(win_auctions[:, config['data_pctr_index']] * eCPC - win_auctions[:, config['data_marketprice_index']])
+        e_profits[t] = np.sum(bids[bids >= auc_datas[:, config['data_marketprice_index']]] - win_auctions[:, config['data_marketprice_index']])
         imps[t] = len(win_auctions)
         real_clks[t] = np.sum(auc_datas[:, config['data_clk_index']], dtype=int)
         bid_nums[t] = len(auc_datas)
@@ -269,7 +270,7 @@ def test_env(budget, budget_para):
                 real_clks[t] += int(current_data[config['data_clk_index']])
                 bid_nums[t] += 1
                 if bid > temp_market_price:
-                    e_profits[t] += (current_data[config['data_pctr_index']] * eCPC - temp_market_price)
+                    e_profits[t] += (bid - temp_market_price)
                     e_clks[t] += int(current_data[config['data_clk_index']])
                     imps[t] += 1
                     temp_cost += temp_market_price

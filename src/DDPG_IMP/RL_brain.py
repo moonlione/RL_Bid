@@ -3,14 +3,14 @@ import torch.nn as nn
 import numpy as np
 import os
 import random
-from src.DDPG.Actor_Critic import Actor, Critic
+from src.DDPG_IMP.Actor_Critic import Actor, Critic
 
 if not os.path.exists('result'):
     os.mkdir('result')
 elif not os.path.exists('Model'):
     os.mkdir('Model')
-elif not os.path.exists('result_profit'):
-    os.mkdir('result_profit')
+elif not os.path.exists('result_imp'):
+    os.mkdir('result_imp')
 
 def setup_seed(seed):
     torch.manual_seed(seed)
@@ -66,8 +66,11 @@ class DDPG():
 
     def choose_action(self, state):
         state = torch.unsqueeze(torch.FloatTensor(state), 0).cuda()
+        self.Actor.eval()
         with torch.no_grad():
             action = self.Actor.forward(state).cpu().numpy()[0][0]
+        self.Actor.train()
+
         return action
 
     def soft_update(self, net, net_target):
@@ -110,14 +113,14 @@ class DDPG():
         if len(test_results) >= 1:
             for i in range(len(test_results)):
                 if i == 0:
-                    max = test_results[i][2]
+                    max = test_results[i][3]
                 elif i != len(test_results) - 1:
-                    if test_results[i][2] > test_results[i - 1][2] and test_results[i][2] > test_results[i + 1][2]:
-                        if max < test_results[i][2]:
-                            max = test_results[i][2]
+                    if test_results[i][3] > test_results[i - 1][3] and test_results[i][3] > test_results[i + 1][3]:
+                        if max < test_results[i][3]:
+                            max = test_results[i][3]
                 else:
-                    if test_results[i][2] > max:
-                        max = test_results[i][2]
+                    if test_results[i][3] > max:
+                        max = test_results[i][3]
         return max
 
 class OrnsteinUhlenbeckNoise:

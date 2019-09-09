@@ -1,7 +1,7 @@
 from src.No_threshold_no_reward.env import AD_env
-from src.DDPG_BN.RL_brain import DDPG
-from src.DDPG_BN.config import config
-from src.DDPG_BN.RL_brain import OrnsteinUhlenbeckNoise
+from src.DDPG_IMP.RL_brain import DDPG
+from src.DDPG_IMP.config import config
+from src.DDPG_IMP.RL_brain import OrnsteinUhlenbeckNoise
 import numpy as np
 import pandas as pd
 import copy
@@ -67,7 +67,6 @@ def run_env(budget, auc_num, budget_para):
             # RL代理根据状态选择动作)
             action = RL.choose_action(state_deep_copy)
             action = np.clip(action + ou_noise()[0], 0, 300)
-            bid = current_data_ctr * eCPC / (1 + action)
 
             # 获取剩下的数据
             # 下一个状态的特征（除去预算、剩余拍卖数量）
@@ -81,7 +80,7 @@ def run_env(budget, auc_num, budget_para):
 
             # RL采用动作后获得下一个状态的信息以及奖励
             # 下一个状态包括了下一步的预算、剩余拍卖数量以及下一条数据的特征向量
-            state_, reward, done, is_win = env.step(auc_data, bid, auc_data_next)
+            state_, reward, done, is_win = env.step(auc_data, action, auc_data_next)
 
             # RL代理将 状态-动作-奖励-下一状态 存入经验池
             # 深拷贝
@@ -102,7 +101,7 @@ def run_env(budget, auc_num, budget_para):
                 total_reward_profits += (current_data_ctr * eCPC - auc_data[config['data_marketprice_index']])
                 total_imps += 1
 
-            ctr_action_records.append([current_data_clk, current_data_ctr, bid, action,
+            ctr_action_records.append([current_data_clk, current_data_ctr, action,
                                            auc_data[config['data_marketprice_index']]])
 
             # 将下一个state_变为 下次循环的state
@@ -262,11 +261,10 @@ def test_env(budget, auc_num, budget_para):
 
         # RL代理根据状态选择动作
         action = RL.choose_action(state_deep_copy)
-        action = np.clip(action, -0.99, 0.99)
-        bid = current_data_ctr * eCPC / (1 + action)
+        action = np.clip(action, 0, 300)
 
         # RL采用动作后获得下一个状态的信息以及奖励
-        state_, reward, done, is_win = env.step_for_test(auc_data, bid)
+        state_, reward, done, is_win = env.step_for_test(auc_data, action)
 
         if is_win:
             hour_clks[int(hour_index)] += current_data_clk

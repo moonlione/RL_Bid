@@ -11,6 +11,8 @@ elif not os.path.exists('Model'):
     os.mkdir('Model')
 elif not os.path.exists('result_profit'):
     os.mkdir('result_profit')
+elif not os.path.exists('result_adjust_reward'):
+    os.mkdir('result_adjust_reward')
 
 def setup_seed(seed):
     torch.manual_seed(seed)
