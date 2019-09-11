@@ -10,7 +10,7 @@ def adjust_reward(e_true_value, e_miss_true_value, bids_t, market_prices_t, e_wi
                   e_clk_aucs,
                   e_clk_no_win_aucs, e_lose_imp_without_clk_cost, e_no_clk_aucs, e_no_clk_no_win_aucs, budget, total_clks, t):
     reward_degree = 1 - np.square(np.mean(np.true_divide(np.subtract(bids_t, market_prices_t), bids_t)))
-    reward_win_imp_with_clk = e_win_imp_with_clk_value[t] / e_true_value[t] * reward_degree
+    reward_win_imp_with_clk = (e_win_imp_with_clk_value[t] / e_true_value[t]) * reward_degree
     reward_win_imp_with_clk = reward_win_imp_with_clk if reward_degree > 0 else 0
 
     remain_budget = (budget - np.sum(e_cost[:t+1])) / budget

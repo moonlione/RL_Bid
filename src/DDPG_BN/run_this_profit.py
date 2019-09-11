@@ -5,10 +5,10 @@ import pandas as pd
 import numpy as np
 import datetime
 
-def reward_t(e_true_value, e_with_clk_value, e_cost, e_waste_budget, e_miss_clk_value, e_miss_true_value, t):
+def reward_t(e_true_value, e_with_clk_value, e_miss_clk_value, e_miss_true_value, t):
     win_clk_punishment = e_with_clk_value[t] / e_true_value[t] if e_true_value[t] > 0 else 0
     miss_clk_punishment = e_miss_clk_value[t] / e_miss_true_value[t] if e_miss_true_value[t] > 0 else 0
-    reward_ = win_clk_punishment  - miss_clk_punishment
+    reward_ = win_clk_punishment - miss_clk_punishment
     return reward_
 
 def run_env(budget, budget_para):
@@ -167,7 +167,7 @@ def run_env(budget, budget_para):
                 actions[0] = init_action
             else:
                 actions[t] = action_
-            reward = reward_t(e_true_value, e_with_clk_value, e_cost, e_waste_budget, e_miss_clk_value, e_miss_true_value, t)
+            reward = reward_t(e_true_value, e_with_clk_value, e_miss_clk_value, e_miss_true_value, t)
             e_reward[t] = reward
             transition = np.hstack((state.tolist(), action, reward, state_.tolist()))
             RL.store_transition(transition)

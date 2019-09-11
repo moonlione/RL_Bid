@@ -18,7 +18,7 @@ config = {
     'test_budget': 30228554, # 14560732
     'test_auc_num': 478109, # 68244
     'budget_para': [1/2],
-    'train_episodes': 30000,
+    'train_episodes': 40000,
     'neuron_nums': 50,
     'GPU_fraction': 1,
     'relace_target_iter': 100,
