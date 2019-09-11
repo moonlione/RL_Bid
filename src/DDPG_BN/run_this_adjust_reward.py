@@ -33,6 +33,15 @@ def adjust_reward(e_true_value, e_miss_true_value, bids_t, market_prices_t, e_wi
 def run_env(budget, budget_para):
     # 训练
     print('data loading')
+    test_data = pd.read_csv("../../data/test_data.csv", header=None).drop([0])
+    test_data.iloc[:, config['data_clk_index']:config['data_marketprice_index'] + 2] \
+        = test_data.iloc[:, config['data_clk_index']:config['data_marketprice_index'] + 2].astype(
+        int)
+    test_data.iloc[:, config['data_pctr_index']] \
+        = test_data.iloc[:, config['data_pctr_index']].astype(
+        float)
+    test_data = test_data.values
+
     train_data = pd.read_csv("../../data/train_data.csv")
     train_data.iloc[:, config['data_clk_index']:config['data_marketprice_index'] + 2] \
         = train_data.iloc[:, config['data_clk_index']:config['data_marketprice_index'] + 2].astype(
@@ -247,7 +256,7 @@ def run_env(budget, budget_para):
                     episode, np.sum(e_reward), np.sum(e_profits), budget, np.sum(e_cost), int(np.sum(e_clks)),
                     int(np.sum(real_clks)), np.sum(bid_nums), np.sum(imps),
                     np.sum(e_cost) / np.sum(imps) if np.sum(imps) > 0 else 0, break_time_slot, td_error, action_loss))
-            test_result, test_actions, test_hour_clks = test_env(config['test_budget'] * budget_para, budget_para)
+            test_result, test_actions, test_hour_clks = test_env(config['test_budget'] * budget_para, budget_para, test_data)
             test_records.append(test_result)
 
             max = RL.para_store_iter(test_records)
@@ -276,16 +285,7 @@ def run_env(budget, budget_para):
     test_records_df.to_csv('result_adjust_reward/test_epsiode_results_' + str(budget_para) + '.csv')
 
 
-def test_env(budget, budget_para):
-    test_data = pd.read_csv("../../data/test_data.csv", header=None).drop([0])
-    test_data.iloc[:, config['data_clk_index']:config['data_marketprice_index'] + 2] \
-        = test_data.iloc[:, config['data_clk_index']:config['data_marketprice_index'] + 2].astype(
-        int)
-    test_data.iloc[:, config['data_pctr_index']] \
-        = test_data.iloc[:, config['data_pctr_index']].astype(
-        float)
-    test_data = test_data.values
-
+def test_env(budget, budget_para, test_data):
     real_hour_clks = []
     for i in range(24):
         real_hour_clks.append(
