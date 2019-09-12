@@ -40,7 +40,7 @@ def run_env(budget, budget_para):
 
     ou_noise = OrnsteinUhlenbeckNoise(mu=np.zeros(1))
     td_error, action_loss = 0, 0
-    eCPC = budget / budget_para / total_clks  # 每次点击花费，由历史数据得到
+    eCPC = 50000 # 每次点击花费
 
     e_results = []
     test_records = []
