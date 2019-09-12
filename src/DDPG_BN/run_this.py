@@ -18,6 +18,7 @@ def run_env(budget, budget_para):
         float)
     train_data = train_data.values
 
+    total_clks = np.sum(train_data[:, config['data_clk_index']])
     real_hour_clks = []
     for i in range(24):
         real_hour_clks.append(
@@ -25,7 +26,7 @@ def run_env(budget, budget_para):
 
     ou_noise = OrnsteinUhlenbeckNoise(mu=np.zeros(1))
     td_error, action_loss = 0, 0
-    eCPC = 50000  # 每次点击花费
+    eCPC = budget / budget_para / total_clks  # 每次点击花费，由历史数据得到
 
     e_results = []
     test_records = []
@@ -158,7 +159,7 @@ def run_env(budget, budget_para):
                     episode, np.sum(e_profits), budget, np.sum(e_cost), int(np.sum(e_clks)),
                     int(np.sum(real_clks)), np.sum(bid_nums), np.sum(imps),
                     np.sum(e_cost) / np.sum(imps) if np.sum(imps) > 0 else 0, break_time_slot, td_error, action_loss))
-            test_result, test_actions, test_hour_clks = test_env(config['test_budget'] * budget_para, budget_para)
+            test_result, test_actions, test_hour_clks = test_env(config['test_budget'] * budget_para, budget_para, eCPC)
             test_records.append(test_result)
 
             max = RL.para_store_iter(test_records)
@@ -187,7 +188,7 @@ def run_env(budget, budget_para):
     test_records_df.to_csv('result/test_epsiode_results_' + str(budget_para) + '.csv')
 
 
-def test_env(budget, budget_para):
+def test_env(budget, budget_para, eCPC):
     test_data = pd.read_csv("../../data/test_data.csv", header=None).drop([0])
     test_data.iloc[:, config['data_clk_index']:config['data_marketprice_index'] + 2] \
         = test_data.iloc[:, config['data_clk_index']:config['data_marketprice_index'] + 2].astype(
@@ -202,7 +203,6 @@ def test_env(budget, budget_para):
         real_hour_clks.append(
             np.sum(test_data[test_data[:, config['data_hour_index']] == i][:, config['data_clk_index']]))
 
-    eCPC = 50000  # 每次点击花费
     e_clks = [0 for i in range(24)]  # episode各个时段所获得的点击数，以下类推
     e_cost = [0 for i in range(24)]
     e_profits = [0 for i in range(24)]
