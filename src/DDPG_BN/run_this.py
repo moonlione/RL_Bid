@@ -29,6 +29,8 @@ def run_env(budget, budget_para):
 
     e_results = []
     test_records = []
+
+    is_learn = False
     for episode in range(config['train_episodes']):
         e_clks = [0 for i in range(24)]  # episode各个时段所获得的点击数，以下类推
         e_profits = [0 for i in range(24)]
@@ -126,11 +128,16 @@ def run_env(budget, budget_para):
             transition = np.hstack((state.tolist(), action, reward, state_.tolist()))
             RL.store_transition(transition)
 
-            if RL.memory_counter >= config['batch_size']:
-                td_e, a_loss = RL.learn()
-                td_error, action_loss = td_e, a_loss
-                RL.soft_update(RL.Actor, RL.Actor_)
-                RL.soft_update(RL.Critic, RL.Critic_)
+            if RL.memory_counter % config['observation_size'] == 0:
+                is_learn = True
+            if is_learn: # after observing config['observation_size'] times, for config['learn_iter'] learning time
+                for m in range(config['learn_iter']):
+                    td_e, a_loss = RL.learn()
+                    td_error, action_loss = td_e, a_loss
+                    RL.soft_update(RL.Actor, RL.Actor_)
+                    RL.soft_update(RL.Critic, RL.Critic_)
+                    if m == config['learn_iter'] - 1:
+                        is_learn = False
             if np.sum(e_cost) >= budget:
                 break
 
