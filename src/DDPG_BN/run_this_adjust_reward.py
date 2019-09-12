@@ -17,8 +17,7 @@ def adjust_reward(e_true_value, e_miss_true_value, bids_t, market_prices_t, e_wi
     remain_budget = remain_budget if remain_budget > 0 else 1e-1 # 1e-1防止出现除0错误
     remain_clks = (total_clks - np.sum(real_clks[:t+1])) / total_clks
     punish_win_rate = remain_clks / remain_budget
-    reward_win_imp_without_clk = - np.sum(e_win_imp_without_clk_cost[t]) * punish_win_rate / e_cost[t]
-
+    reward_win_imp_without_clk = - e_win_imp_without_clk_cost[t] * punish_win_rate / e_cost[t]
     temp_rate = (e_clk_no_win_aucs[t] / e_clk_aucs[t]) if e_clk_aucs[t] > 0 else 1
     punish_no_win_rate = 1 - temp_rate if temp_rate != 1 else 1
     base_punishment = e_lose_imp_with_clk_value[t] / e_miss_true_value[t] if e_miss_true_value[t] > 0 else 0
@@ -28,7 +27,7 @@ def adjust_reward(e_true_value, e_miss_true_value, bids_t, market_prices_t, e_wi
     encourage_rate = 1 - (e_no_clk_no_win_aucs[t] / e_no_clk_aucs[t])
     reward_lose_imp_without_clk = base_encourage / encourage_rate if encourage_rate > 0 else 1
     reward_t = reward_win_imp_with_clk + reward_win_imp_without_clk + reward_lose_imp_with_clk + reward_lose_imp_without_clk
-    return reward_t / 1e5
+    return reward_t
 
 def run_env(budget, budget_para):
     # 训练
