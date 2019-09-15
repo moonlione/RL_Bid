@@ -1,7 +1,7 @@
 config = {
     'e_greedy': 0.9,
-    'learning_rate_a': 3e-5,
-    'learning_rate_c': 1e-4,
+    'learning_rate_a': 1e-4,
+    'learning_rate_c': 1e-5,
     'reward_decay': 1,
     'tau': 0.001,
     'feature_num': 5, # 153,3
@@ -17,12 +17,15 @@ config = {
     'train_auc_num': 448164, # 155444, 127594, 173710
     'test_budget': 30228554, # 14560732
     'test_auc_num': 478109, # 68244
-    'budget_para': [1/2],
-    'train_episodes': 30000,
-    'neuron_nums': 50,
+    'budget_para': [1/16],
+    'train_episodes': 50000,
+    'neuron_nums_c_1': 50,
+    'neuron_nums_c_2': 40,
+    'neuron_nums_a_1': 30,
+    'neuron_nums_a_2': 20,
     'GPU_fraction': 1,
-    'relace_target_iter': 100,
-    'observation_size': 5000,
-    'memory_size': 100000,
+    'learn_iter': 24,
+    'observation_size': 240,
+    'memory_size': 1000000,
     'batch_size': 32, # GPU对2的幂次的batch可以发挥更佳的性能，因此设置成16、32、64、128...时往往要比设置为整10、整100的倍数时表现更优
 }
