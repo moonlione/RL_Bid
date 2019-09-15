@@ -3,7 +3,7 @@ import torch.nn as nn
 import torch.nn.functional as F
 import numpy as np
 import random
-from src.DDPG_BN.config import config
+from src.DDPG.config import config
 
 def setup_seed(seed):
     torch.manual_seed(seed)
