@@ -1,5 +1,6 @@
 import torch
 import torch.nn as nn
+import torch.nn.functional as F
 import numpy as np
 import os
 import random
@@ -56,7 +57,7 @@ class DDPG():
 
         # 优化器
         self.optimizer_a = torch.optim.Adam(self.Actor.parameters(), lr=self.lr_A)
-        self.optimizer_c = torch.optim.Adam(self.Critic.parameters(), lr=self.lr_C)
+        self.optimizer_c = torch.optim.Adam(self.Critic.parameters(), lr=self.lr_C, weight_decay=1e-2)
 
         self.loss_func = nn.MSELoss(reduction='mean').cuda()
 
@@ -95,7 +96,7 @@ class DDPG():
 
         q_target = b_r + self.gamma * self.Critic_.forward(b_s_, self.Actor_(b_s_)).cuda()
         q = self.Critic.forward(b_s, b_a).cuda()
-        td_error = self.loss_func(q, q_target)
+        td_error = F.smooth_l1_loss(q, q_target.detach())
         self.optimizer_c.zero_grad()
         td_error.backward()
         self.optimizer_c.step()
@@ -127,7 +128,7 @@ class DDPG():
 
 class OrnsteinUhlenbeckNoise:
     def __init__(self, mu):
-        self.theta, self.dt, self.sigma = 0.1, 0.01, 0.1
+        self.theta, self.dt, self.sigma = 0.15, 0.01, 0.2
         self.mu = mu
         self.x_prev = np.zeros_like(self.mu)
 

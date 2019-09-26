@@ -13,20 +13,22 @@ def adjust_reward(e_true_value, e_miss_true_value, bids_t, market_prices_t, e_wi
     reward_win_imp_with_clk = (e_win_imp_with_clk_value[t] / e_true_value[t]) * reward_degree
     reward_win_imp_with_clk = reward_win_imp_with_clk if reward_degree > 0 else 0
 
-    remain_budget = (budget - np.sum(e_cost[:t+1])) / budget
-    remain_budget = remain_budget if remain_budget > 0 else 1e-1 # 1e-1防止出现除0错误
-    remain_clks = (total_clks - np.sum(real_clks[:t+1])) / total_clks
-    punish_win_rate = remain_clks / remain_budget
-    reward_win_imp_without_clk = - e_win_imp_without_clk_cost[t] * punish_win_rate / e_cost[t]
+    # remain_budget = (budget - np.sum(e_cost[:t+1])) / budget
+    # remain_budget = remain_budget if remain_budget > 0 else 1e-1 # 1e-1防止出现除0错误
+    # remain_clks = (total_clks - np.sum(real_clks[:t+1])) / total_clks
+    # punish_win_rate = remain_clks / remain_budget
+    # reward_win_imp_without_clk = - e_win_imp_without_clk_cost[t] * punish_win_rate / e_cost[t]
     temp_rate = (e_clk_no_win_aucs[t] / e_clk_aucs[t]) if e_clk_aucs[t] > 0 else 1
     punish_no_win_rate = 1 - temp_rate if temp_rate != 1 else 1
     base_punishment = e_lose_imp_with_clk_value[t] / e_miss_true_value[t] if e_miss_true_value[t] > 0 else 0
     reward_lose_imp_with_clk = - base_punishment / punish_no_win_rate
 
-    base_encourage = np.sum(e_lose_imp_without_clk_cost[t]) / e_cost[t]
-    encourage_rate = 1 - (e_no_clk_no_win_aucs[t] / e_no_clk_aucs[t])
-    reward_lose_imp_without_clk = base_encourage / encourage_rate if encourage_rate > 0 else 1
-    reward_t = reward_win_imp_with_clk + reward_win_imp_without_clk + reward_lose_imp_with_clk + reward_lose_imp_without_clk
+    # base_encourage = e_lose_imp_without_clk_cost[t] / np.sum(market_prices_t)
+    # # print(base_encourage)
+    # encourage_rate = 1 - (e_no_clk_no_win_aucs[t] / e_no_clk_aucs[t])
+    # reward_lose_imp_without_clk = base_encourage / encourage_rate if encourage_rate > 0 else 1
+    reward_t = reward_win_imp_with_clk + reward_lose_imp_with_clk
+    # print(reward_t, reward_win_imp_with_clk, reward_win_imp_without_clk, reward_lose_imp_with_clk, reward_lose_imp_without_clk)
     return reward_t
 
 def run_env(budget, budget_para):
@@ -63,6 +65,7 @@ def run_env(budget, budget_para):
     test_records = []
 
     is_learn = False
+    decay_value = 1
     for episode in range(config['train_episodes']):
         e_clks = [0 for i in range(24)]  # episode各个时段所获得的点击数，以下类推
         e_profits = [0 for i in range(24)]
@@ -98,7 +101,7 @@ def run_env(budget, budget_para):
             if t == 0:
                 state = np.array([1, 0, 0, 0, 0])  # current_time_slot, budget_left_ratio, cost_t_ratio, budget_spent_speed, ctr_t, win_rate_t
                 action = RL.choose_action(state)
-                action = np.clip(action + ou_noise()[0], -0.99, 0.99)
+                action = np.clip(np.random.normal(action, decay_value), -0.99, 0.99)
                 init_action = action
                 bids = auc_datas[:, config['data_pctr_index']] * eCPC / (1 + init_action)
                 bids = np.where(bids >= 300, 300, bids)
@@ -140,6 +143,7 @@ def run_env(budget, budget_para):
                 # print('早停时段{}'.format(t))
                 break_time_slot = t
                 temp_cost = 0
+                temp_lose_cost = 0
                 temp_win_auctions = 0
                 e_clks[t] = 0
                 e_profits[t] = 0
@@ -195,6 +199,7 @@ def run_env(budget, budget_para):
                         temp_win_auctions += 1
                     else:
                         e_miss_true_value[t] += current_data[config['data_pctr_index']] * eCPC
+                        temp_lose_cost += temp_market_price
                         if temp_clk == 1:
                             e_clk_no_win_aucs[t] += 1
                             e_lose_imp_with_clk_value[t] += (current_data[config['data_pctr_index']] * eCPC - temp_market_price)
@@ -237,6 +242,7 @@ def run_env(budget, budget_para):
             # 因此可以每感知N次再对模型训练n次，这样会使得模型更稳定，并加快学习速度
             if RL.memory_counter % config['observation_size'] == 0:
                 is_learn = True
+                decay_value *= 0.999
             if is_learn: # after observing config['observation_size'] times, for config['learn_iter'] learning time
                 for m in range(config['learn_iter']):
                     td_e, a_loss = RL.learn()
@@ -253,6 +259,7 @@ def run_env(budget, budget_para):
         e_results.append(e_result)
 
         if (episode > 0) and (episode % 100 == 0):
+            print(decay_value)
             actions_df = pd.DataFrame(data=actions)
             actions_df.to_csv('result_adjust_reward/train_actions_' + str(budget_para) + '.csv')
 
