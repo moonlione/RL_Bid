@@ -1,7 +1,7 @@
 config = {
     'e_greedy': 0.9,
     'learning_rate_a': 1e-4,
-    'learning_rate_c': 1e-5,
+    'learning_rate_c': 1e-3,
     'reward_decay': 1,
     'tau': 0.001,
     'feature_num': 5, # 153,3
@@ -26,6 +26,6 @@ config = {
     'GPU_fraction': 1,
     'learn_iter': 24,
     'observation_size': 240,
-    'memory_size': 1000000,
+    'memory_size': 500000,
     'batch_size': 32, # GPU对2的幂次的batch可以发挥更佳的性能，因此设置成16、32、64、128...时往往要比设置为整10、整100的倍数时表现更优
 }
