@@ -15,7 +15,7 @@ def run_env(budget, budget_para):
     # 训练
     print('data loading')
 
-    test_data = pd.read_csv("../../data/test_data.csv", header=None).drop([0])
+    test_data = pd.read_csv('../../data/' + config['campaign_id'] + '/test_data.csv', header=None).drop([0])
     test_data.iloc[:, config['data_clk_index']:config['data_marketprice_index'] + 2] \
         = test_data.iloc[:, config['data_clk_index']:config['data_marketprice_index'] + 2].astype(
         int)
@@ -24,7 +24,7 @@ def run_env(budget, budget_para):
         float)
     test_data = test_data.values
 
-    train_data = pd.read_csv("../../data/train_data.csv")
+    train_data = pd.read_csv('../../data/' + config['campaign_id'] + '/train_data.csv')
     train_data.iloc[:, config['data_clk_index']:config['data_marketprice_index'] + 2] \
         = train_data.iloc[:, config['data_clk_index']:config['data_marketprice_index'] + 2].astype(
         int)
@@ -40,13 +40,14 @@ def run_env(budget, budget_para):
 
     ou_noise = OrnsteinUhlenbeckNoise(mu=np.zeros(1))
     td_error, action_loss = 0, 0
-    eCPC = 50000 # 每次点击花费
+    eCPC = np.sum(train_data[:, 2]) / np.sum(train_data[:, 1]) / 2 # 每次点击花费
+    print(eCPC)
 
     e_results = []
     test_records = []
 
     is_learn = False
-    decay_value = 1
+    decay_value = 3
     for episode in range(config['train_episodes']):
         e_clks = [0 for i in range(24)]  # episode各个时段所获得的点击数，以下类推
         e_profits = [0 for i in range(24)]
@@ -75,7 +76,7 @@ def run_env(budget, budget_para):
             if t == 0:
                 state = np.array([1, 0, 0, 0, 0])  # current_time_slot, budget_left_ratio, cost_t_ratio, budget_spent_speed, ctr_t, win_rate_t
                 action = RL.choose_action(state)
-                action = np.clip(action + ou_noise()[0], -0.99, 0.99)
+                action = np.clip(action + ou_noise()[0] * decay_value, -0.99, 0.99)
                 init_action = action
                 bids = auc_datas[:, config['data_pctr_index']] * eCPC / (1 + init_action)
                 bids = np.where(bids >= 300, 300, bids)

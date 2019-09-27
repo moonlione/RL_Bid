@@ -11,13 +11,18 @@ config = {
     'data_marketprice_index': 2, # 16:train-fm,2
     'data_feature_index': 1, # 15:train-fm,1
     'state_feature_num': 1, #,1
+    'campaign_id': '3386',
     'train_date': str(20130606), # sample 328481 328 22067108
     'test_date': str(20130607), # sample 307176 307 19441889
-    'train_budget': 30096630, # 22067108
-    'train_auc_num': 448164, # 155444, 127594, 173710
-    'test_budget': 30228554, # 14560732
-    'test_auc_num': 478109, # 68244
-    'budget_para': [1/2],
+    # 'train_budget': 30096630, # 30096630, 30608307
+    # 'train_auc_num': 448164, # 1448164, 448164, 435900
+    # 'test_budget': 30228554, # 130228554, 30228554, 30231716
+    # 'test_auc_num': 444191, # 478109, 444191
+    'train_budget': 30608307, # 30096630, 30608307
+    'train_auc_num': 435900, # 1448164, 448164, 435900
+    'test_budget': 30231716, # 130228554, 30228554, 30231716
+    'test_auc_num': 444191, # 478109, 444191
+    'budget_para': [1/4],
     'train_episodes': 50000,
     'neuron_nums_c_1': 50,
     'neuron_nums_c_2': 40,
