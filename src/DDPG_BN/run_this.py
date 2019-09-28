@@ -42,7 +42,7 @@ def run_env(budget, budget_para):
     test_records = []
 
     is_learn = False
-    decay_value = 1
+    exploration_rate = config['exploration_rate']
     for episode in range(config['train_episodes']):
         e_clks = [0 for i in range(24)]  # episode各个时段所获得的点击数，以下类推
         e_profits = [0 for i in range(24)]
@@ -64,7 +64,7 @@ def run_env(budget, budget_para):
             if t == 0:
                 state = np.array([1, 0, 0, 0, 0])  # current_time_slot, budget_left_ratio, cost_t_ratio, budget_spent_speed, ctr_t, win_rate_t
                 action = RL.choose_action(state)
-                action = np.clip(np.random.normal(action, decay_value), -0.99, 0.99)
+                action = np.clip(action + ou_noise()[0] * exploration_rate, -0.99, 0.99)
                 init_action = action
                 bids = auc_datas[:, config['data_pctr_index']] * eCPC / (1 + init_action)
                 bids = np.where(bids >= 300, 300, bids)
@@ -142,7 +142,7 @@ def run_env(budget, budget_para):
 
             if RL.memory_counter % config['observation_size'] == 0:
                 is_learn = True
-                decay_value *= 0.999
+                exploration_rate *= 0.995
             if is_learn: # after observing config['observation_size'] times, for config['learn_iter'] learning time
                 for m in range(config['learn_iter']):
                     td_e, a_loss = RL.learn()
@@ -159,7 +159,6 @@ def run_env(budget, budget_para):
         e_results.append(e_result)
 
         if (episode > 0) and (episode % 100 == 0):
-            print(decay_value)
             actions_df = pd.DataFrame(data=actions)
             actions_df.to_csv('result/train_actions_' + str(budget_para) + '.csv')
 
