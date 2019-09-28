@@ -40,8 +40,7 @@ def run_env(budget, budget_para):
 
     ou_noise = OrnsteinUhlenbeckNoise(mu=np.zeros(1))
     td_error, action_loss = 0, 0
-    eCPC = np.sum(train_data[:, 2]) / np.sum(train_data[:, 1]) # 每次点击花费
-    print(eCPC)
+    eCPC = np.sum(train_data[:, 2]) / np.sum(train_data[:, 1]) / 2 # 每次点击花费
 
     e_results = []
     test_records = []
@@ -76,7 +75,7 @@ def run_env(budget, budget_para):
             if t == 0:
                 state = np.array([1, 0, 0, 0, 0])  # current_time_slot, budget_left_ratio, cost_t_ratio, budget_spent_speed, ctr_t, win_rate_t
                 action = RL.choose_action(state)
-                action = np.clip(action + ou_noise()[0] * exploration_rate , -0.99, 0.99)
+                action = np.clip(action + ou_noise()[0] * exploration_rate, -0.99, 0.99)
                 init_action = action
                 bids = auc_datas[:, config['data_pctr_index']] * eCPC / (1 + init_action)
                 bids = np.where(bids >= 300, 300, bids)
