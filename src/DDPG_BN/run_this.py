@@ -290,7 +290,7 @@ def test_env(budget, budget_para, test_data, eCPC):
             state_ = np.array([avg_time_spend, cost_t_ratio, ctr_t, win_rate_t])
         else:
             budget_spent_speed = (e_cost[t] - e_cost[t - 1]) / e_cost[t - 1] if e_cost[t - 1] > 0 else 1
-            state_ = np.array([avg_time_spend, cost_t_ratio, ctr_t, win_rate_t])g
+            state_ = np.array([avg_time_spend, cost_t_ratio, ctr_t, win_rate_t])
         action_ = RL.choose_action(state_)
         action_ = np.clip(action_, -0.99, 0.99)
         next_action = action_
