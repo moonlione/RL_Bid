@@ -73,7 +73,7 @@ def run_env(budget, budget_para):
         for t in range(24):
             auc_datas = train_data[train_data[:, config['data_hour_index']] == t]
             if t == 0:
-                state = np.array([1, 0, 0, 0, 0])  # current_time_slot, budget_left_ratio, cost_t_ratio, budget_spent_speed, ctr_t, win_rate_t
+                state = np.array([1, 0, 0, 0])  # current_time_slot, budget_left_ratio, cost_t_ratio, budget_spent_speed, ctr_t, win_rate_t
                 action = RL.choose_action(state)
                 action = np.clip(action + ou_noise()[0] * exploration_rate, -0.99, 0.99)
                 init_action = action
@@ -156,13 +156,15 @@ def run_env(budget, budget_para):
                 win_rate_t = len(win_auctions) / len(auc_datas)
             budget_left_ratio = (budget - np.sum(e_cost[:t + 1])) / budget
             budget_left_ratio = budget_left_ratio if budget_left_ratio >= 0 else 0
+            time_left_ratio = (23 - t) / 24
+            avg_time_spend = budget_left_ratio / time_left_ratio if time_left_ratio > 0 else 0
             cost_t_ratio = e_cost[t] / budget
             if t == 0:
-                state_ = np.array([budget_left_ratio, cost_t_ratio, 1, ctr_t, win_rate_t])
+                state_ = np.array([avg_time_spend, cost_t_ratio, ctr_t, win_rate_t])
             else:
                 budget_spent_speed = (e_cost[t] - e_cost[t - 1]) / e_cost[t - 1] if e_cost[t - 1] > 0 else 1
                 state_ = np.array(
-                    [budget_left_ratio, cost_t_ratio, budget_spent_speed, ctr_t, win_rate_t])
+                    [avg_time_spend, cost_t_ratio, ctr_t, win_rate_t])
             action_ = RL.choose_action(state_)
             action_ = np.clip(np.random.normal(action, exploration_rate), -0.99, 0.99)
             next_action = action_
@@ -258,7 +260,7 @@ def test_env(budget, budget_para, test_data, eCPC):
     for t in range(24):
         auc_datas = test_data[test_data[:, config['data_hour_index']] == t]
         if t == 0:
-            state = np.array([1, 0, 0, 0, 0])  # current_time_slot, budget_left_ratio, cost_t_ratio, budget_spent_speed, ctr_t, win_rate_t
+            state = np.array([1, 0, 0, 0])  # current_time_slot, budget_left_ratio, cost_t_ratio, budget_spent_speed, ctr_t, win_rate_t
             action = RL.choose_action(state)
             action = np.clip(action, -0.99, 0.99)
             init_action = action
@@ -315,12 +317,14 @@ def test_env(budget, budget_para, test_data, eCPC):
             win_rate_t = len(win_auctions) / len(auc_datas)
         budget_left_ratio = (budget - np.sum(e_cost[:t + 1])) / budget
         budget_left_ratio = budget_left_ratio if budget_left_ratio >= 0 else 0
+        time_left_ratio = (23 - t) / 24
+        avg_time_spend = budget_left_ratio / time_left_ratio if time_left_ratio > 0 else 0
         cost_t_ratio = e_cost[t] / budget
         if t == 0:
-            state_ = np.array([budget_left_ratio, cost_t_ratio, 1, ctr_t, win_rate_t])
+            state_ = np.array([avg_time_spend, cost_t_ratio, ctr_t, win_rate_t])
         else:
             budget_spent_speed = (e_cost[t] - e_cost[t - 1]) / e_cost[t - 1] if e_cost[t - 1] > 0 else 1
-            state_ = np.array([budget_left_ratio, cost_t_ratio, budget_spent_speed, ctr_t, win_rate_t])
+            state_ = np.array([avg_time_spend, cost_t_ratio, ctr_t, win_rate_t])
         action_ = RL.choose_action(state_)
         action_ = np.clip(action_, -0.99, 0.99)
         next_action = action_

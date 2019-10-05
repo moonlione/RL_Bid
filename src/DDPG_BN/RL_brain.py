@@ -67,7 +67,7 @@ class DDPG():
         self.memory[index, :] = transition  # 替换
         self.memory_counter += 1
 
-    def choose_action(self, state):
+    def choose_action(self, state, ):
         state = torch.unsqueeze(torch.FloatTensor(state), 0)
         self.Actor.eval()
         with torch.no_grad():
