@@ -13,28 +13,28 @@ def adjust_reward(e_true_value, e_miss_true_value, bids_t, market_prices_t, e_wi
     reward_win_imp_with_clk = (e_win_imp_with_clk_value[t] / e_true_value[t]) * reward_degree
     reward_win_imp_with_clk = reward_win_imp_with_clk if reward_degree > 0 else 0
 
-    # remain_budget = (budget - np.sum(e_cost[:t+1])) / budget
-    # remain_budget = remain_budget if remain_budget > 0 else 1e-1 # 1e-1防止出现除0错误
-    # remain_clks = (total_clks - np.sum(real_clks[:t+1])) / total_clks
-    # punish_win_rate = remain_clks / remain_budget
-    # reward_win_imp_without_clk = - e_win_imp_without_clk_cost[t] * punish_win_rate / e_cost[t]
+    remain_budget = (budget - np.sum(e_cost[:t+1])) / budget
+    remain_budget = remain_budget if remain_budget > 0 else 1e-1 # 1e-1防止出现除0错误
+    remain_clks = (total_clks - np.sum(real_clks[:t+1])) / total_clks
+    punish_win_rate = remain_clks / remain_budget
+    reward_win_imp_without_clk = - e_win_imp_without_clk_cost[t] * punish_win_rate / e_cost[t]
     temp_rate = (e_clk_no_win_aucs[t] / e_clk_aucs[t]) if e_clk_aucs[t] > 0 else 1
     punish_no_win_rate = 1 - temp_rate if temp_rate != 1 else 1
     base_punishment = e_lose_imp_with_clk_value[t] / e_miss_true_value[t] if e_miss_true_value[t] > 0 else 0
     reward_lose_imp_with_clk = - base_punishment / punish_no_win_rate
 
-    # base_encourage = e_lose_imp_without_clk_cost[t] / np.sum(market_prices_t)
-    # # print(base_encourage)
-    # encourage_rate = 1 - (e_no_clk_no_win_aucs[t] / e_no_clk_aucs[t])
-    # reward_lose_imp_without_clk = base_encourage / encourage_rate if encourage_rate > 0 else 1
-    reward_t = reward_win_imp_with_clk + reward_lose_imp_with_clk
+    base_encourage = e_lose_imp_without_clk_cost[t] / np.sum(market_prices_t)
+    # print(base_encourage)
+    encourage_rate = 1 - (e_no_clk_no_win_aucs[t] / e_no_clk_aucs[t])
+    reward_lose_imp_without_clk = base_encourage / encourage_rate if encourage_rate > 0 else 1
+    reward_t = reward_win_imp_with_clk + reward_lose_imp_with_clk + reward_win_imp_without_clk + reward_lose_imp_without_clk
     # print(reward_t, reward_win_imp_with_clk, reward_win_imp_without_clk, reward_lose_imp_with_clk, reward_lose_imp_without_clk)
-    return reward_t
+    return reward_t / 1e5
 
 def run_env(budget, budget_para):
     # 训练
     print('data loading')
-    test_data = pd.read_csv("../../data/test_data.csv", header=None).drop([0])
+    test_data = pd.read_csv('../../data/' + config['campaign_id'] + '/test_data.csv', header=None).drop([0])
     test_data.iloc[:, config['data_clk_index']:config['data_marketprice_index'] + 2] \
         = test_data.iloc[:, config['data_clk_index']:config['data_marketprice_index'] + 2].astype(
         int)
@@ -43,7 +43,7 @@ def run_env(budget, budget_para):
         float)
     test_data = test_data.values
 
-    train_data = pd.read_csv("../../data/train_data.csv")
+    train_data = pd.read_csv('../../data/' + config['campaign_id'] + '/train_data.csv')
     train_data.iloc[:, config['data_clk_index']:config['data_marketprice_index'] + 2] \
         = train_data.iloc[:, config['data_clk_index']:config['data_marketprice_index'] + 2].astype(
         int)
@@ -59,13 +59,13 @@ def run_env(budget, budget_para):
 
     ou_noise = OrnsteinUhlenbeckNoise(mu=np.zeros(1))
     td_error, action_loss = 0, 0
-    eCPC = 50000 # 每次点击花费
+    eCPC = np.sum(train_data[:, 2]) / np.sum(train_data[:, 1]) / 2 # 每次点击花费
 
     e_results = []
     test_records = []
 
     is_learn = False
-    decay_value = 1
+    exploration_rate = config['exploration_rate']
     for episode in range(config['train_episodes']):
         e_clks = [0 for i in range(24)]  # episode各个时段所获得的点击数，以下类推
         e_profits = [0 for i in range(24)]
@@ -99,9 +99,9 @@ def run_env(budget, budget_para):
             auc_datas = train_data[train_data[:, config['data_hour_index']] == t]
 
             if t == 0:
-                state = np.array([1, 0, 0, 0, 0])  # current_time_slot, budget_left_ratio, cost_t_ratio, budget_spent_speed, ctr_t, win_rate_t
+                state = np.array([1, 0, 0, 0])  # current_time_slot, budget_left_ratio, cost_t_ratio, budget_spent_speed, ctr_t, win_rate_t
                 action = RL.choose_action(state)
-                action = np.clip(np.random.normal(action, decay_value), -0.99, 0.99)
+                action = np.clip(action + ou_noise()[0] * exploration_rate, -0.99, 0.99)
                 init_action = action
                 bids = auc_datas[:, config['data_pctr_index']] * eCPC / (1 + init_action)
                 bids = np.where(bids >= 300, 300, bids)
@@ -110,6 +110,8 @@ def run_env(budget, budget_para):
                 action = next_action
                 bids = auc_datas[:, config['data_pctr_index']] * eCPC / (1 + action)
                 bids = np.where(bids >= 300, 300, bids)
+
+            # print(bids, action)
             win_auctions = auc_datas[bids >= auc_datas[:, config['data_marketprice_index']]]
             no_win_auctions = auc_datas[bids <= auc_datas[:, config['data_marketprice_index']]]
             e_cost[t] = np.sum(win_auctions[:, config['data_marketprice_index']])
@@ -127,7 +129,7 @@ def run_env(budget, budget_para):
             imps[t] = len(win_auctions)
             real_clks[t] = np.sum(auc_datas[:, config['data_clk_index']], dtype=int)
             bid_nums[t] = len(auc_datas)
-            
+
             e_clk_aucs[t] = len(auc_datas[auc_datas[:, config['data_clk_index']] == 1])
             e_clk_no_win_aucs[t] = len(with_clk_no_win_auctions)
 
@@ -214,15 +216,17 @@ def run_env(budget, budget_para):
                 win_rate_t = len(win_auctions) / len(auc_datas)
             budget_left_ratio = (budget - np.sum(e_cost[:t + 1])) / budget
             budget_left_ratio = budget_left_ratio if budget_left_ratio >= 0 else 0
+            time_left_ratio = (23 - t)/ 24
+            avg_time_spend = budget_left_ratio / time_left_ratio if time_left_ratio > 0 else 0
             cost_t_ratio = e_cost[t] / budget
             if t == 0:
-                state_ = np.array([budget_left_ratio, cost_t_ratio, 1, ctr_t, win_rate_t])
+                state_ = np.array([avg_time_spend, cost_t_ratio, ctr_t, win_rate_t])
             else:
                 budget_spent_speed = (e_cost[t] - e_cost[t - 1]) / e_cost[t - 1] if e_cost[t - 1] > 0 else 1
                 state_ = np.array(
-                    [budget_left_ratio, cost_t_ratio, budget_spent_speed, ctr_t, win_rate_t])
+                    [avg_time_spend, cost_t_ratio, ctr_t, win_rate_t])
             action_ = RL.choose_action(state_)
-            action_ = np.clip(action_ + ou_noise()[0], -0.99, 0.99)
+            action_ = np.clip(action_ + ou_noise()[0] * exploration_rate, -0.99, 0.99)
             next_action = action_
             if t == 0:
                 actions[0] = init_action
@@ -242,7 +246,7 @@ def run_env(budget, budget_para):
             # 因此可以每感知N次再对模型训练n次，这样会使得模型更稳定，并加快学习速度
             if RL.memory_counter % config['observation_size'] == 0:
                 is_learn = True
-                decay_value *= 0.999
+                exploration_rate *= 0.995
             if is_learn: # after observing config['observation_size'] times, for config['learn_iter'] learning time
                 for m in range(config['learn_iter']):
                     td_e, a_loss = RL.learn()
@@ -259,7 +263,6 @@ def run_env(budget, budget_para):
         e_results.append(e_result)
 
         if (episode > 0) and (episode % 100 == 0):
-            print(decay_value)
             actions_df = pd.DataFrame(data=actions)
             actions_df.to_csv('result_adjust_reward/train_actions_' + str(budget_para) + '.csv')
 
@@ -325,7 +328,7 @@ def test_env(budget, budget_para, test_data, eCPC):
     for t in range(24):
         auc_datas = test_data[test_data[:, config['data_hour_index']] == t]
         if t == 0:
-            state = np.array([1, 0, 0, 0, 0])  # current_time_slot, budget_left_ratio, cost_t_ratio, budget_spent_speed, ctr_t, win_rate_t
+            state = np.array([1, 0, 0, 0])  # current_time_slot, budget_left_ratio, cost_t_ratio, budget_spent_speed, ctr_t, win_rate_t
             action = RL.choose_action(state)
             action = np.clip(action, -0.99, 0.99)
             init_action = action
@@ -383,12 +386,14 @@ def test_env(budget, budget_para, test_data, eCPC):
             win_rate_t = len(win_auctions) / len(auc_datas)
         budget_left_ratio = (budget - np.sum(e_cost[:t + 1])) / budget
         budget_left_ratio = budget_left_ratio if budget_left_ratio >= 0 else 0
+        time_left_ratio = (23 - t) / 24
+        avg_time_spend = budget_left_ratio / time_left_ratio if time_left_ratio > 0 else 0
         cost_t_ratio = e_cost[t] / budget
         if t == 0:
-            state_ = np.array([budget_left_ratio, cost_t_ratio, 1, ctr_t, win_rate_t])
+            state_ = np.array([avg_time_spend, cost_t_ratio, ctr_t, win_rate_t])
         else:
             budget_spent_speed = (e_cost[t] - e_cost[t - 1]) / e_cost[t - 1] if e_cost[t - 1] > 0 else 1
-            state_ = np.array([budget_left_ratio, cost_t_ratio, budget_spent_speed, ctr_t, win_rate_t])
+            state_ = np.array([avg_time_spend, cost_t_ratio, ctr_t, win_rate_t])
         action_ = RL.choose_action(state_)
         action_ = np.clip(action_, -0.99, 0.99)
         next_action = action_
