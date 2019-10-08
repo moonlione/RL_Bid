@@ -24,7 +24,7 @@ config = {
     'train_auc_num': 412275, # 1448164, 448164, 435900
     'test_budget': 31379459, # 130228554, 30228554, 30231716
     'test_auc_num': 392901, # 478109, 444191
-    'budget_para': [1/16],
+    'budget_para': [1/4],
     'train_episodes': 50000,
     'neuron_nums_c_1': 50,
     'neuron_nums_c_2': 40,

@@ -49,17 +49,17 @@ class DDPG():
             self.memory_counter = 0
         self.memory = np.zeros((self.memory_size, self.feature_numbers * 2 + self.action_numbers + 1))
 
-        self.Actor = Actor(self.feature_numbers, self.action_numbers)
-        self.Critic = Critic(self.feature_numbers, self.action_numbers)
+        self.Actor = Actor(self.feature_numbers, self.action_numbers).cuda()
+        self.Critic = Critic(self.feature_numbers, self.action_numbers).cuda()
 
-        self.Actor_ = Actor(self.feature_numbers, self.action_numbers)
-        self.Critic_ = Critic(self.feature_numbers, self.action_numbers)
+        self.Actor_ = Actor(self.feature_numbers, self.action_numbers).cuda()
+        self.Critic_ = Critic(self.feature_numbers, self.action_numbers).cuda()
 
         # 优化器
         self.optimizer_a = torch.optim.Adam(self.Actor.parameters(), lr=self.lr_A)
         self.optimizer_c = torch.optim.Adam(self.Critic.parameters(), lr=self.lr_C, weight_decay=1e-2)
 
-        self.loss_func = nn.MSELoss(reduction='mean')
+        self.loss_func = nn.MSELoss(reduction='mean').cuda()
 
     def store_transition(self, transition):
         # 由于已经定义了经验池的memory_size，如果超过此大小，旧的memory则被新的memory替换
@@ -68,10 +68,10 @@ class DDPG():
         self.memory_counter += 1
 
     def choose_action(self, state, ):
-        state = torch.unsqueeze(torch.FloatTensor(state), 0)
+        state = torch.unsqueeze(torch.FloatTensor(state), 0).cuda()
         self.Actor.eval()
         with torch.no_grad():
-            action = self.Actor.forward(state).numpy()[0][0]
+            action = self.Actor.forward(state).cpu().numpy()[0][0]
         self.Actor.train()
 
         return action
@@ -89,19 +89,19 @@ class DDPG():
 
         batch_memory = self.memory[sample_index, :]
 
-        b_s = torch.FloatTensor(batch_memory[:, :self.feature_numbers])
-        b_a = torch.FloatTensor(batch_memory[:, self.feature_numbers: self.feature_numbers + self.action_numbers])
-        b_r = torch.FloatTensor(batch_memory[:, -self.feature_numbers - 1: -self.feature_numbers])
-        b_s_ = torch.FloatTensor(batch_memory[:, -self.feature_numbers:])
+        b_s = torch.FloatTensor(batch_memory[:, :self.feature_numbers]).cuda()
+        b_a = torch.FloatTensor(batch_memory[:, self.feature_numbers: self.feature_numbers + self.action_numbers]).cuda()
+        b_r = torch.FloatTensor(batch_memory[:, -self.feature_numbers - 1: -self.feature_numbers]).cuda()
+        b_s_ = torch.FloatTensor(batch_memory[:, -self.feature_numbers:]).cuda()
 
-        q_target = b_r + self.gamma * self.Critic_.forward(b_s_, self.Actor_(b_s_))
-        q = self.Critic.forward(b_s, b_a)
+        q_target = b_r + self.gamma * self.Critic_.forward(b_s_, self.Actor_(b_s_)).cuda()
+        q = self.Critic.forward(b_s, b_a).cuda()
         td_error = F.smooth_l1_loss(q, q_target.detach())
         self.optimizer_c.zero_grad()
         td_error.backward()
         self.optimizer_c.step()
 
-        a_loss = -self.Critic.forward(b_s, self.Actor(b_s)).mean()
+        a_loss = -self.Critic.forward(b_s, self.Actor(b_s)).mean().cuda()
         self.optimizer_a.zero_grad()
         a_loss.backward()
         self.optimizer_a.step()
