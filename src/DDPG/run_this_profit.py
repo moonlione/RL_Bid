@@ -50,7 +50,9 @@ def run_env(budget, budget_para):
 
     ou_noise = OrnsteinUhlenbeckNoise(mu=np.zeros(1))
     td_error, action_loss = 0, 0
-    eCPC = np.sum(train_data[:, 2]) / np.sum(train_data[:, 1]) / 2 # 每次点击花费
+    eCPC = 60920.22773088766
+    # 由启发式算法得到最优eCPC 1458-60920.22773088766,38767.41764692851,33229.21512593873, 22152.81008395915‬
+    # 3386-77901.22125145316‬,47939.21307781733,35954.409808363,23969.60653890866‬
 
     e_results = []
     test_records = []
@@ -237,7 +239,7 @@ def run_env(budget, budget_para):
             # 因此可以每感知N次再对模型训练n次，这样会使得模型更稳定，并加快学习速度
             if RL.memory_counter % config['observation_size'] == 0:
                 is_learn = True
-                exploration_rate *= 0.995
+                exploration_rate *= 0.999
             if is_learn: # after observing config['observation_size'] times, for config['learn_iter'] learning time
                 for m in range(config['learn_iter']):
                     td_e, a_loss = RL.learn()
