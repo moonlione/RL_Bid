@@ -36,7 +36,7 @@ def run_env(budget, budget_para):
 
     ou_noise = OrnsteinUhlenbeckNoise(mu=np.zeros(1))
     td_error, action_loss = 0, 0
-    eCPC = np.sum(train_data[:, 2]) / np.sum(train_data[:, 1]) / 2 # 每次点击花费
+    eCPC = 60920.22773088766 # 每次点击花费
 
     e_results = []
     test_records = []
@@ -144,7 +144,7 @@ def run_env(budget, budget_para):
 
             if RL.memory_counter % config['observation_size'] == 0:
                 is_learn = True
-                exploration_rate *= 0.995
+                exploration_rate *= 0.999
             if is_learn: # after observing config['observation_size'] times, for config['learn_iter'] learning time
                 for m in range(config['learn_iter']):
                     td_e, a_loss = RL.learn()

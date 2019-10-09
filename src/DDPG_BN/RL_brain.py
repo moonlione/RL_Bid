@@ -64,7 +64,7 @@ class DDPG():
     def store_transition(self, transition):
         # 由于已经定义了经验池的memory_size，如果超过此大小，旧的memory则被新的memory替换
         index = self.memory_counter % self.memory_size
-        self.memory[index, :] = transition  # 替换git
+        self.memory[index, :] = transition  # 替换
         self.memory_counter += 1
 
     def choose_action(self, state, ):
