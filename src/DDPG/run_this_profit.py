@@ -48,7 +48,6 @@ def run_env(budget, budget_para):
         real_hour_clks.append(
             np.sum(train_data[train_data[:, config['data_hour_index']] == i][:, config['data_clk_index']]))
 
-    ou_noise = OrnsteinUhlenbeckNoise(mu=np.zeros(1))
     td_error, action_loss = 0, 0
     eCPC = 60920.22773088766
     # 由启发式算法得到最优eCPC 1458-60920.22773088766,38767.41764692851,33229.21512593873, 22152.81008395915‬
@@ -86,6 +85,7 @@ def run_env(budget, budget_para):
         real_clks = [0 for i in range(24)]
         bid_nums = [0 for i in range(24)]
         imps = [0 for i in range(24)]
+        ou_noise = OrnsteinUhlenbeckNoise(mu=np.zeros(1))
 
         # 状态包括：当前CTR，
         for t in range(24):

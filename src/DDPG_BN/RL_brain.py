@@ -106,8 +106,8 @@ class DDPG():
         a_loss.backward()
         self.optimizer_a.step()
 
-        td_error_r = td_error.detach().numpy()
-        a_loss_r = a_loss.detach().numpy()
+        td_error_r = td_error.detach().cpu().numpy()
+        a_loss_r = a_loss.detach().cpu().numpy()
         return td_error_r, a_loss_r
 
     # 只存储获得最优收益（点击）那一轮的参数
