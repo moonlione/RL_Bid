@@ -49,7 +49,7 @@ def run_env(budget, budget_para):
             np.sum(train_data[train_data[:, config['data_hour_index']] == i][:, config['data_clk_index']]))
 
     td_error, action_loss = 0, 0
-    eCPC = 60920.22773088766
+    eCPC = 38767.41764692851
     # 由启发式算法得到最优eCPC 1458-60920.22773088766,38767.41764692851,33229.21512593873, 22152.81008395915‬
     # 3386-77901.22125145316‬,47939.21307781733,35954.409808363,23969.60653890866‬
 
@@ -255,7 +255,7 @@ def run_env(budget, budget_para):
                     np.sum(e_cost) / np.sum(imps) if np.sum(imps) > 0 else 0, break_time_slot, td_error, action_loss]
         e_results.append(e_result)
 
-        if (episode > 0) and (episode % 100 == 0):
+        if (episode > 0) and ((episode + 1) % 10 == 0):
             actions_df = pd.DataFrame(data=actions)
             actions_df.to_csv('result_profit/train_actions_' + str(budget_para) + '.csv')
 
@@ -265,7 +265,7 @@ def run_env(budget, budget_para):
             hour_clks_df.to_csv('result_profit/train_hour_clks_' + str(budget_para) + '.csv')
             print(
                 'episode {}, reward={}, profits={}, budget={}, cost={}, clks={}, real_clks={}, bids={}, imps={}, cpm={}, break_time_slot={}, td_error={}, action_loss={}\n'.format(
-                    episode, np.sum(e_reward), np.sum(e_profits), budget, np.sum(e_cost), int(np.sum(e_clks)),
+                    episode + 1, np.sum(e_reward), np.sum(e_profits), budget, np.sum(e_cost), int(np.sum(e_clks)),
                     int(np.sum(real_clks)), np.sum(bid_nums), np.sum(imps),
                     np.sum(e_cost) / np.sum(imps) if np.sum(imps) > 0 else 0, break_time_slot, td_error, action_loss))
             test_result, test_actions, test_hour_clks = test_env(config['test_budget'] * budget_para, budget_para, test_data, eCPC)
