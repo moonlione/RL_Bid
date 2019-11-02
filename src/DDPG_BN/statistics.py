@@ -75,9 +75,8 @@ def test_env(budget, test_data, eCPC, actions):
     print(e_market_prices.tolist())
     print(e_bids.tolist(), e_clks, imps, bid_nums)
 
-budget_para = 0.5
 directory = 'result_adjust_reward'
-action_file = directory + '/test_episode_actions_' + str(budget_para) + '.csv'
+action_file = directory + '/test_episode_actions_' + str(config['budget_para'][0]) + '.csv'
 actions = pd.read_csv(action_file, header=None).drop([0]).iloc[0, 1:].tolist() # 后面应该更新为选择最优的对应的actions
 
 test_data = pd.read_csv('../../data/' + config['campaign_id'] + '/test_data.csv', header=None).drop([0])
@@ -89,7 +88,7 @@ test_data.iloc[:, config['data_pctr_index']] \
     float)
 test_data = test_data.values
 
-budget = config['test_budget'] * budget_para
+budget = config['test_budget'] * config['budget_para'][0]
 
 eCPC = 60920.22773088766 # 每次点击花费
     # 由启发式算法得到最优eCPC 1458-60920.22773088766,38767.41764692851,33229.21512593873, 22152.81008395915‬
