@@ -63,6 +63,7 @@ def run_env(budget, budget_para):
     # 3386-77901.22125145316‬,47939.21307781733,35954.409808363,23969.60653890866‬
 
     e_results = []
+    e_actions = []
     test_records = []
 
     is_learn = False
@@ -280,6 +281,7 @@ def run_env(budget, budget_para):
                     np.sum(e_cost) / np.sum(imps) if np.sum(imps) > 0 else 0, break_time_slot, td_error, action_loss))
             test_result, test_actions, test_hour_clks = test_env(config['test_budget'] * budget_para, budget_para, test_data, eCPC)
             test_records.append(test_result)
+            e_actions.append(test_actions)
 
             max = RL.para_store_iter(test_records)
             if max == test_records[len(test_records) - 1:len(test_records)][0][3]:
@@ -299,12 +301,15 @@ def run_env(budget, budget_para):
 
     e_results_df = pd.DataFrame(data=e_results, columns=['reward', 'profits', 'budget', 'cost', 'clks', 'real_clks', 'bids', 'imps', 'cpm',
                                                          'break_time_slot', 'td_error', 'action_loss'])
-    e_results_df.to_csv('result_adjust_reward/train_epsiode_results_' + str(budget_para) + '.csv')
+    e_results_df.to_csv('result_adjust_reward/train_episode_results_' + str(budget_para) + '.csv')
+
+    e_actions_df = pd.DataFrame(data=e_actions)
+    e_actions_df.to_csv('result_adjust_reward/test_episode_actions_' + str(budget_para) + '.csv')
 
     test_records_df = pd.DataFrame(data=test_records,
                                    columns=['profits', 'budget', 'cost', 'clks', 'real_clks', 'bids', 'imps', 'cpm',
                                             'break_time_slot'])
-    test_records_df.to_csv('result_adjust_reward/test_epsiode_results_' + str(budget_para) + '.csv')
+    test_records_df.to_csv('result_adjust_reward/test_episode_results_' + str(budget_para) + '.csv')
 
 
 def test_env(budget, budget_para, test_data, eCPC):
