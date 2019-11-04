@@ -183,7 +183,7 @@ def run_env(budget, budget_para):
                         e_no_clk_aucs[t] += 1
                     bids_t.append(bid)
                     market_prices_t.append(temp_market_price)
-                    if bid > temp_market_price:
+                    if bid >= temp_market_price:
                         if temp_clk == 0:
                             e_win_imp_without_clk_cost[t] += temp_market_price
                         else:
@@ -368,7 +368,7 @@ def test_env(budget, budget_para, test_data, eCPC):
                 bid = bid if bid <= 300 else 300
                 real_clks[t] += int(current_data[config['data_clk_index']])
                 bid_nums[t] += 1
-                if bid > temp_market_price:
+                if bid >= temp_market_price:
                     e_profits[t] += (current_data[config['data_pctr_index']] * eCPC - temp_market_price)
                     e_clks[t] += int(current_data[config['data_clk_index']])
                     imps[t] += 1

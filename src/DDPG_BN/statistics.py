@@ -67,7 +67,7 @@ def test_env(budget, test_data, eCPC, actions):
                 market_prices.append(temp_market_price)
                 hours.append(current_data[config['data_hour_index']])
                 real_labels.append(temp_clk)
-                if bid > temp_market_price:
+                if bid >= temp_market_price:
                     e_clks[t] += temp_clk
                     imps[t] += 1
                     temp_cost += temp_market_price
@@ -98,10 +98,15 @@ def max_train_index(directory, para):
     test_clks = test_results[:, [0, 4]]
 
     new_test_clks = []
+    new_test_results = []
     for i in range(len(test_clks)):
         test_clk_temp = [test_clks[i, 1] for k in range(10)]
         new_test_clks.append(test_clk_temp)
 
+        test_temp = [test_results[i, [0, 3, 4, 6, 7, 8]].tolist() for m in range(10)]
+        new_test_results.append(test_temp)
+
+    new_test_results = np.array(new_test_results).reshape(50000, 6)
     extend_test_clks = np.array(new_test_clks).flatten()
 
     max_value = train_clks[train_clks[:, 1].argsort()][-1, 1]
@@ -115,7 +120,9 @@ def max_train_index(directory, para):
 
     test_value_max_index = np.argmax(max_test_value)  # max_test_value 最大值的索引
 
-    return max_test_value_index[test_value_max_index]
+    max_test_result = new_test_results[max_test_value_index[test_value_max_index], :].tolist()
+
+    return int(max_test_result[0])
 
 directory = 'result_adjust_reward'
 action_file = directory + '/test_episode_actions_' + str(config['budget_para'][0]) + '.csv'

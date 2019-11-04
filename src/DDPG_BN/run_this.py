@@ -111,7 +111,7 @@ def run_env(budget, budget_para):
                     real_clks[t] += int(current_data[config['data_clk_index']])
                     bid_nums[t] += 1
 
-                    if bid > temp_market_price:
+                    if bid >= temp_market_price:
                         e_profits[t] += (bid - temp_market_price)
                         e_clks[t] += int(current_data[config['data_clk_index']])
                         imps[t] += 1
@@ -276,7 +276,7 @@ def test_env(budget, budget_para, test_data, eCPC):
                 bid = bid if bid <= 300 else 300
                 real_clks[t] += int(current_data[config['data_clk_index']])
                 bid_nums[t] += 1
-                if bid > temp_market_price:
+                if bid >= temp_market_price:
                     e_profits[t] += (bid - temp_market_price)
                     e_clks[t] += int(current_data[config['data_clk_index']])
                     imps[t] += 1

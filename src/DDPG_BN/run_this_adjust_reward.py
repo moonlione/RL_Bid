@@ -58,7 +58,7 @@ def run_env(budget, budget_para):
             np.sum(train_data[train_data[:, config['data_hour_index']] == i][:, config['data_clk_index']]))
 
     td_error, action_loss = 0, 0
-    eCPC = 38767.41764692851
+    eCPC = 60920.22773088766
     # 由启发式算法得到最优eCPC 1458-60920.22773088766,38767.41764692851,33229.21512593873, 22152.81008395915‬
     # 3386-77901.22125145316‬,47939.21307781733,35954.409808363,23969.60653890866‬
 
@@ -192,7 +192,7 @@ def run_env(budget, budget_para):
                         e_no_clk_aucs[t] += 1
                     bids_t.append(bid)
                     market_prices_t.append(temp_market_price)
-                    if bid > temp_market_price:
+                    if bid >= temp_market_price:
                         if temp_clk == 0:
                             e_win_imp_without_clk_cost[t] += temp_market_price
                         else:
@@ -379,7 +379,7 @@ def test_env(budget, budget_para, test_data, eCPC):
                 bid = bid if bid <= 300 else 300
                 real_clks[t] += temp_clk
                 bid_nums[t] += 1
-                if bid > temp_market_price:
+                if bid >= temp_market_price:
                     e_profits[t] += (current_data[config['data_pctr_index']] * eCPC - temp_market_price)
                     e_clks[t] += temp_clk
                     imps[t] += 1
