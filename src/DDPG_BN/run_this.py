@@ -79,6 +79,9 @@ def run_env(budget, budget_para):
                 bids = auc_datas[:, config['data_pctr_index']] * eCPC / (1 + action)
                 bids = np.where(bids >= 300, 300, bids)
                 win_auctions = auc_datas[bids >= auc_datas[:, config['data_marketprice_index']]]
+
+            actions[t] = action
+
             e_cost[t] = np.sum(win_auctions[:, config['data_marketprice_index']])
             e_profits[t] = np.sum(bids[bids >= auc_datas[:, config['data_marketprice_index']]] - win_auctions[:, config[
                                                                                                                      'data_marketprice_index']])
@@ -138,10 +141,7 @@ def run_env(budget, budget_para):
             action_ = RL.choose_action(state_)
             action_ = np.clip(action_ + ou_noise()[0], -0.99, 0.99)
             next_action = action_
-            if t == 0:
-                actions[0] = init_action
-            else:
-                actions[t] = action_
+
             reward = e_clks[t]
             transition = np.hstack((state.tolist(), action, reward, state_.tolist()))
             RL.store_transition(transition)
@@ -247,6 +247,9 @@ def test_env(budget, budget_para, test_data, eCPC):
             bids = auc_datas[:, config['data_pctr_index']] * eCPC / (1 + action)
             bids = np.where(bids >= 300, 300, bids)
             win_auctions = auc_datas[bids >= auc_datas[:, config['data_marketprice_index']]]
+
+        actions[t] = action
+
         e_cost[t] = np.sum(win_auctions[:, config['data_marketprice_index']])
         e_clks[t] = np.sum(win_auctions[:, config['data_clk_index']], dtype=int)
         e_profits[t] = np.sum(bids[bids >= auc_datas[:, config['data_marketprice_index']]] - win_auctions[:, config['data_marketprice_index']])
@@ -302,10 +305,7 @@ def test_env(budget, budget_para, test_data, eCPC):
         action_ = RL.choose_action(state_)
         action_ = np.clip(action_, -0.99, 0.99)
         next_action = action_
-        if t == 0:
-            actions[0] = init_action
-        else:
-            actions[t] = action_
+
         if np.sum(e_cost) >= budget:
             break
     print('-----------测试结果-----------\n')
