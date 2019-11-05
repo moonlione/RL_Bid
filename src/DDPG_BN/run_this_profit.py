@@ -5,6 +5,28 @@ import pandas as pd
 import numpy as np
 import datetime
 
+def choose_eCPC(campaign):
+    if campaign == '1458':
+        if config['budget_para'][0] == 0.5:
+            eCPC = 60920.22773088766
+        elif config['budget_para'][0] == 0.25:
+            eCPC = 38767.41764692851
+        elif config['budget_para'][0] == 0.125:
+            eCPC = 33229.21512593873
+        else:
+            eCPC = 22152.81008395915
+    else:
+        if config['budget_para'][0] == 0.5:
+            eCPC = 77901.22125145316
+        elif config['budget_para'][0] == 0.25:
+            eCPC = 47939.21307781733
+        elif config['budget_para'][0] == 0.125:
+            eCPC = 35954.409808363
+        else:
+            eCPC = 23969.60653890866
+
+    return eCPC
+
 def adjust_reward(e_true_value, e_miss_true_value, bids_t, market_prices_t, e_win_imp_with_clk_value, e_cost, e_win_imp_without_clk_cost, real_clks,
                   e_lose_imp_with_clk_value,
                   e_clk_aucs,
@@ -49,7 +71,7 @@ def run_env(budget, budget_para):
             np.sum(train_data[train_data[:, config['data_hour_index']] == i][:, config['data_clk_index']]))
 
     td_error, action_loss = 0, 0
-    eCPC = 38767.41764692851 # 每次点击花费
+    eCPC = choose_eCPC(config['campaign_id']) # 每次点击花费
     # 由启发式算法得到最优eCPC 1458-60920.22773088766,38767.41764692851,33229.21512593873, 22152.81008395915‬
     # 3386-77901.22125145316‬,47939.21307781733,35954.409808363,23969.60653890866‬
 

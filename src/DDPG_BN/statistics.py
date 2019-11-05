@@ -55,11 +55,8 @@ def test_env(budget, test_data, eCPC, actions):
                 current_data = auc_datas[i, :]
                 temp_clk = int(current_data[config['data_clk_index']])
                 temp_market_price = current_data[config['data_marketprice_index']]
-                if t == 0:
-                    temp_action = init_action
-                else:
-                    temp_action = next_action
-                bid = current_data[config['data_pctr_index']] * eCPC / (1 + temp_action)
+
+                bid = current_data[config['data_pctr_index']] * eCPC / (1 + actions[t])
                 bid = bid if bid <= 300 else 300
                 bid_nums[t] += 1
 
@@ -121,10 +118,35 @@ def max_train_index(directory, para):
     test_value_max_index = np.argmax(max_test_value)  # max_test_value 最大值的索引
 
     max_test_result = new_test_results[max_test_value_index[test_value_max_index], :].tolist()
-
+    print(max_test_result)
     return int(max_test_result[0])
 
-directory = 'result_adjust_reward'
+# 由启发式算法得到最优eCPC 1458-60920.22773088766,38767.41764692851,33229.21512593873, 22152.81008395915‬
+# 3386-77901.22125145316‬,47939.21307781733,35954.409808363,23969.60653890866‬
+
+campaign = '1458'
+
+if campaign == '1458':
+    if config['budget_para'][0] == 0.5:
+        eCPC = 60920.22773088766
+    elif config['budget_para'][0] == 0.25:
+        eCPC = 38767.41764692851
+    elif config['budget_para'][0] == 0.125:
+        eCPC = 33229.21512593873
+    else:
+        eCPC = 22152.81008395915
+    directory = 'result_adjust_reward'
+else:
+    if config['budget_para'][0] == 0.5:
+        eCPC = 77901.22125145316
+    elif config['budget_para'][0] == 0.25:
+        eCPC = 47939.21307781733
+    elif config['budget_para'][0] == 0.125:
+        eCPC = 35954.409808363
+    else:
+        eCPC = 23969.60653890866
+    directory = '3386-result_adjust_reward'
+
 action_file = directory + '/test_episode_actions_' + str(config['budget_para'][0]) + '.csv'
 actions_df = pd.read_csv(action_file, header=None).drop([0])
 
@@ -142,9 +164,5 @@ test_data.iloc[:, config['data_pctr_index']] \
 test_data = test_data.values
 
 budget = config['test_budget'] * config['budget_para'][0]
-
-eCPC = 60920.22773088766 # 每次点击花费
-# 由启发式算法得到最优eCPC 1458-60920.22773088766,38767.41764692851,33229.21512593873, 22152.81008395915‬
-# 3386-77901.22125145316‬,47939.21307781733,35954.409808363,23969.60653890866‬
 
 test_env(budget, test_data, eCPC, actions)

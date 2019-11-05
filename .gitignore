@@ -37,6 +37,9 @@ src/__pycache__/
 /src/DDPG_BN/result/
 /src/DDPG_BN/result_profit/
 /src/DDPG_BN/result_adjust_reward/
+/src/DDPG_BN/3386-result_adjust_reward/
+/src/DDPG_BN/3386-result_profit/
+/src/DDPG_BN/3386-result/
 /src/DDPG_BN/result_imp/
 /src/DDPG_BN/__pycache__/
 /src/DDPG_Dropout/Model/
