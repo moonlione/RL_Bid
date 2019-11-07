@@ -300,7 +300,7 @@ def clk_frequency(test_data, budget_para, directory):
 # 3386-77901.22125145316‬,47939.21307781733,35954.409808363,23969.60653890866‬
 
 budget_paras = [0.5, 0.25, 0.125, 0.0625]
-campaign_id = '3386'
+campaign_id = '1458'
 reward_type = 1 # 1-result_adjust_reward, 2-result_profit, 3-result
 if reward_type == 1:
     reward_directory = 'result_adjust_reward'
@@ -317,6 +317,10 @@ for budget_para in budget_paras:
     file_directory = directory
     clk_frequency(pd_test_data, budget_para, directory)
 
+# 各个时段的平均市场价格
+for i in range(24):
+    print(np.sum(pd_test_data[pd_test_data.iloc[:, 3].isin([i])].iloc[:, 2])/len(pd_test_data[pd_test_data.iloc[:, 3].isin([i])]))
+
 print('\n##########List Metrics##########')
 for budget_para in budget_paras:
     print('\n------budget_para:{}------'.format(budget_para))
@@ -326,3 +330,4 @@ print('\n##########Action Distribution##########')
 for budget_para in budget_paras:
     print('\n------budget_para:{}------'.format(budget_para))
     action_distribution(budget_para, file_directory)
+
