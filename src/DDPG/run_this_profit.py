@@ -42,7 +42,7 @@ def adjust_reward(e_true_value, e_miss_true_value, bids_t, market_prices_t, e_wi
 
     reward_t = reward_win_imp_with_clk + reward_lose_imp_with_clk
     # print(reward_t, reward_win_imp_with_clk, reward_win_imp_without_clk, reward_lose_imp_with_clk, reward_lose_imp_without_clk)
-    return reward_t / 1e5
+    return reward_t
 
 def run_env(budget, budget_para):
     # 训练
